@@ -1,107 +1,73 @@
-using System.Linq;
+using System.Collections;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody), typeof(CapsuleCollider))]
 public class Movement : MonoBehaviour
 {
-    #region Serialized Fields
-
     [Header("Audio Clips")]
-    [Tooltip("The audio clips that are played while walking.")]
-    [SerializeField] 
-    private AudioClip[] walkClips;
+    [SerializeField] private AudioClip[] walkClips;
+    [SerializeField] private AudioClip audioClipLanding;
 
-    [Tooltip("The audio clip that is played when landing.")]
-    [SerializeField] 
-    private AudioClip audioClipLanding;
+    [Header("Movement Settings")]
+    public float forwardSpeed = 8.0f;
+    public float backwardSpeed = 4.0f;
+    public float strafeSpeed = 4.0f;
+    public float jumpHeight = 10f;
+    public float jumpDuration = 1f;
+    public float airControlMultiplier = 0.5f; // Air control multiplier
+    public AnimationCurve slopeCurveModifier = new AnimationCurve(new Keyframe(-90.0f, 1.0f), new Keyframe(0.0f, 1.0f), new Keyframe(90.0f, 0.0f));
 
-    [Header("Speeds")]
-    [SerializeField] 
-    private float speedWalking = 5.0f;
+    [Header("Advanced Settings")]
+    public float groundCheckDistance = 0.1f;
+    public float stickToGroundHelperDistance = 0.5f;
+    public bool airControl;
+    public float shellOffset = 0.1f; // Reduce radius in sphere cast
+    public float frictionDampening = 0.9f; // Friction dampening factor
 
-    [Tooltip("The force applied when the player jumps.")]
-    [SerializeField] 
-    private float jumpForce = 5.0f;
-
-    [Header("Ground Detection")]
-    [Tooltip("Layers to consider as ground.")]
-    [SerializeField] 
-    private LayerMask groundLayerMask;
-
-    #endregion
-
-    #region Private Fields
+    [Header("Gravity Settings")]
+    public float airDrag = 0.5f; // Drag applied when airborne
 
     private Rigidbody rigidBody;
     private CapsuleCollider capsule;
     private AudioSource audioSource;
 
-    private bool grounded;
+    private bool isGrounded;
     private bool wasGrounded;
     private bool isJumping;
     private float walkAudioTimer = 0.0f;
     private float walkAudioSpeed = 0.4f;
     private int currentClipIndex = 0;
-
     public bool isMoving;
-
-    private RaycastHit[] groundHits = new RaycastHit[10]; 
-    
-    // private float previousVelocityY;
-
-    #endregion
-
-    #region Unity Methods
 
     private void Awake()
     {
-        // Initialize components
         rigidBody = GetComponent<Rigidbody>();
         rigidBody.constraints = RigidbodyConstraints.FreezeRotation;
-        rigidBody.velocity = Vector3.zero; // Ensure initial velocity is zero
+        rigidBody.useGravity = true; // Use Unity's built-in gravity
 
         capsule = GetComponent<CapsuleCollider>();
-
         audioSource = GetComponent<AudioSource>();
         audioSource.loop = false;
 
-        // Perform initial ground check
         GroundCheck();
-    }
-
-    private void Start()
-    {
-       // previousVelocityY = rigidBody.velocity.y;
     }
 
     private void Update()
     {
-        // Track vertical velocity changes for debuging
-        //float currentVelocityY = rigidBody.velocity.y;
-        //float velocityChangeY = currentVelocityY - previousVelocityY;
-
-        // Debug.Log($"Velocity change Y: {velocityChangeY:F4}");
-
-       // previousVelocityY = currentVelocityY;
-
-        // Play landing sound if player was airborne and is now grounded
-        if (!wasGrounded && grounded && !isJumping)
+        if (!wasGrounded && isGrounded && !isJumping)
         {
             PlayLandingSound();
         }
 
-        // Handle footsteps audio
         PlayFootsteps();
-        wasGrounded = grounded;
+        wasGrounded = isGrounded;
 
-        // Handle jumping input
-        if (Input.GetKeyDown(KeyCode.Space) && grounded)
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             Jump();
         }
 
-        // Reset jumping state if the player is grounded
-        if (grounded)
+        if (isGrounded)
         {
             isJumping = false;
         }
@@ -109,44 +75,43 @@ public class Movement : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // Move the character
-        MoveCharacter();
-
-        // Reset grounded state to be updated in GroundCheck
-        grounded = false;
-    }
-
-    private void OnCollisionStay()
-    {
-        // Perform ground check while collision is ongoing
         GroundCheck();
-    }
+        Vector2 input = GetInput();
 
-    #endregion
-
-    #region Movement Methods
-
-    private void MoveCharacter()
-    {
-        // Get movement input
-        Vector2 frameInput = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
-        Vector3 movement = new Vector3(frameInput.x, 0.0f, frameInput.y);
-
-        // Normalize movement to ensure consistent speed in all directions
-        if (movement.magnitude > 1.0f)
+        if ((Mathf.Abs(input.x) > float.Epsilon || Mathf.Abs(input.y) > float.Epsilon))
         {
-            movement.Normalize();
+            Vector3 desiredMove = transform.forward * input.y + transform.right * input.x;
+            desiredMove = Vector3.ProjectOnPlane(desiredMove, Vector3.up).normalized;
+
+            float targetSpeed = input.y > 0 ? forwardSpeed : backwardSpeed;
+            if (Mathf.Abs(input.x) > 0) targetSpeed = strafeSpeed;
+
+            desiredMove *= targetSpeed * SlopeMultiplier();
+
+            if (isGrounded)
+            {
+                // Apply ground movement
+                rigidBody.velocity = new Vector3(desiredMove.x, rigidBody.velocity.y, desiredMove.z);
+                isMoving = rigidBody.velocity.magnitude > 0.1f;
+            }
+            else if (airControl && !isJumping)
+            {
+                // Apply air control only when airborne and not in the initial jump phase
+                Vector3 airMove = desiredMove * airControlMultiplier;
+                rigidBody.AddForce(airMove, ForceMode.Acceleration);
+            }
+
+            // Apply air resistance when not grounded
+            if (!isGrounded)
+            {
+                Vector3 airResistance = -rigidBody.velocity * airDrag;
+                rigidBody.AddForce(airResistance, ForceMode.Acceleration);
+            }
         }
-
-        // Scale movement by walking speed and transform it to world space
-        movement *= speedWalking;
-        movement = transform.TransformDirection(movement);
-
-        // Apply movement only if grounded
-        if (grounded)
+        else if (isGrounded && !isMoving)
         {
-            isMoving = movement.sqrMagnitude > 0.1f;
-            rigidBody.velocity = new Vector3(movement.x, rigidBody.velocity.y, movement.z);
+            rigidBody.velocity = new Vector3(rigidBody.velocity.x * frictionDampening, rigidBody.velocity.y, rigidBody.velocity.z * frictionDampening);
+            isMoving = rigidBody.velocity.magnitude > 0.1f;
         }
         else
         {
@@ -156,20 +121,40 @@ public class Movement : MonoBehaviour
 
     private void Jump()
     {
-        // Apply jump force and set states
-        rigidBody.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-        grounded = false;
-        isJumping = true;
+        float gravity = -Physics.gravity.y;
+        float velocity = Mathf.Sqrt(gravity * jumpHeight * 2);
+
+        rigidBody.velocity = new Vector3(rigidBody.velocity.x, velocity, rigidBody.velocity.z);
+
+        StartCoroutine(JumpCoroutine(jumpDuration));
     }
 
-    #endregion
+    private IEnumerator JumpCoroutine(float duration)
+    {
+        float timer = 0f;
 
-    #region Audio Methods
+        while (timer < duration)
+        {
+            timer += Time.deltaTime;
+
+            float t = timer / duration;
+            t = t * t * (3f - 2f * t); // Smoothstep function
+
+            float height = Mathf.Lerp(jumpHeight, 0f, t);
+            rigidBody.velocity = new Vector3(rigidBody.velocity.x, Mathf.Sqrt(-Physics.gravity.y * height * 2), rigidBody.velocity.z);
+
+            yield return null;
+        }
+    }
+
+    private Vector2 GetInput()
+    {
+        return new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
+    }
 
     private void PlayFootsteps()
     {
-        // Play walking sound if moving and grounded
-        if (grounded && isMoving)
+        if (isGrounded && isMoving)
         {
             if (walkAudioTimer > walkAudioSpeed)
             {
@@ -190,31 +175,28 @@ public class Movement : MonoBehaviour
         }
     }
 
-    #endregion
-
-    #region Ground Detection Methods
-
     private void GroundCheck()
     {
-        // Get capsule bounds and calculate radius
-        Bounds bounds = capsule.bounds;
-        Vector3 extents = bounds.extents;
-        float radius = extents.x - 0.01f;
-
-        // Perform sphere cast to check for ground
-        int hitCount = Physics.SphereCastNonAlloc(bounds.center, radius, Vector3.down,
-            groundHits, extents.y - radius * 0.5f, groundLayerMask, QueryTriggerInteraction.Ignore);
-
-        // Determine if grounded based on hits
-        grounded = groundHits.Take(hitCount).Any(hit => hit.collider != null && hit.collider != capsule);
-
-        // Reset ground hits array if grounded
-        if (grounded)
+        RaycastHit hitInfo;
+        if (Physics.SphereCast(transform.position, capsule.radius * (1f - shellOffset), Vector3.down, out hitInfo, ((capsule.height / 2f) - capsule.radius) + groundCheckDistance, Physics.AllLayers, QueryTriggerInteraction.Ignore))
         {
-            for (int i = 0; i < groundHits.Length; i++)
-                groundHits[i] = new RaycastHit();
+            isGrounded = true;
+        }
+        else
+        {
+            isGrounded = false;
         }
     }
 
-    #endregion
+    private float SlopeMultiplier()
+    {
+        Vector3 normal = Vector3.up; // Default to straight up if no ground contact normal is calculated
+        RaycastHit hitInfo;
+        if (Physics.Raycast(transform.position, -Vector3.up, out hitInfo, capsule.height * 0.5f))
+        {
+            normal = hitInfo.normal;
+        }
+        float angle = Vector3.Angle(normal, Vector3.up);
+        return slopeCurveModifier.Evaluate(angle);
+    }
 }
