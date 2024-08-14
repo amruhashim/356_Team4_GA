@@ -125,18 +125,39 @@ public class Chase : MonoBehaviour
             // Check if the player is within the vision range
             if (Vector3.Distance(transform.position, playerTransform.position) <= visionRange)
             {
-                // Player entered the vision range
-                if (!isPlayerInRange)
-                {
-                    Debug.Log("Player entered vision range");
-                }
-                isPlayerInRange = true;
-
                 // Check if the player is within the vision angle
                 Vector3 agentForward = transform.forward;
                 Vector3 directionToPlayer = (playerTransform.position - transform.position).normalized;
                 float angle = Vector3.Angle(agentForward, directionToPlayer);
                 isPlayerInVisionAngle = angle <= visionAngle / 2f;
+
+                if (isPlayerInVisionAngle)
+                {
+                    // Perform a raycast to check if there's a direct line of sight to the player
+                    RaycastHit hit;
+                    if (Physics.Raycast(transform.position, directionToPlayer, out hit, visionRange))
+                    {
+                        if (hit.collider.CompareTag("Player"))
+                        {
+                            
+                            if (!isPlayerInRange)
+                            {
+                                Debug.Log("Player entered vision range and line of sight");
+                            }
+                            isPlayerInRange = true;
+                        }
+                        else
+                        {
+                        
+                            isPlayerInRange = false;
+                            isPlayerInVisionAngle = false;
+                        }
+                    }
+                }
+                else
+                {
+                    isPlayerInRange = false;
+                }
             }
             else
             {
@@ -150,6 +171,7 @@ public class Chase : MonoBehaviour
             isPlayerInVisionAngle = false;
         }
     }
+
 
     private void ChasePlayer()
     {
