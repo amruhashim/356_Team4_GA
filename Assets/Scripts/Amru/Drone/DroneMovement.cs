@@ -182,6 +182,15 @@ public class DroneMovement : MonoBehaviour
         droneSound.pitch = 1 + (ourDrone.velocity.magnitude / 100);
     }
 
+    // In DroneMovement script
+public void SetInitialRotation(Vector3 direction)
+{
+    wantedYRotation = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
+    currentYRotation = wantedYRotation;
+    transform.rotation = Quaternion.Euler(0, currentYRotation, 0);
+}
+
+
     void RotateMotors()
     {
         // Start with base rotation speed
