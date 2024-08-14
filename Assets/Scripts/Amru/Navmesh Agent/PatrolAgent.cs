@@ -67,7 +67,7 @@ public class PatrolAgent : MonoBehaviour
     #endregion
 
     #region Waypoint Methods
-    private void MoveToNextWaypoint()
+    public void MoveToNextWaypoint()
     {
         // Return if there are no waypoints
         if (waypoints.Length == 0)
