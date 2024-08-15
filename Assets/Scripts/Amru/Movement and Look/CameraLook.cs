@@ -63,7 +63,8 @@ public class CameraLook : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (!isCursorLocked)
+        // Return if the cursor is not locked or the menu is open
+        if (!isCursorLocked || MenuManager.Instance.isMenuOpen)
             return;
 
         // Frame Input
