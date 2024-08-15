@@ -35,6 +35,7 @@ public class MenuManager : MonoBehaviour
             // Open the menu
             uiCanvas.SetActive(false);
             menuCanvas.SetActive(true);
+            menu.SetActive(true); // Set menu to true here
 
             isMenuOpen = true;
 

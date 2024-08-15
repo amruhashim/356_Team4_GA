@@ -5,9 +5,13 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
+    
+    public string sceneName;
+
     public void NewGame()
     {
-        SceneManager.LoadScene("A1");
+        // Load the scene using the name provided in the inspector
+        SceneManager.LoadScene(sceneName);
     }
 
     public void ExitGame()
