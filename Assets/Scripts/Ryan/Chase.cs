@@ -1,12 +1,13 @@
 using UnityEngine;
 using UnityEngine.AI;
+using System.Collections;
 
 public class Chase : MonoBehaviour
 {
     public float visionRange = 20f;
     public float visionAngle = 60f;
     public float chasingSpeed = 5f;
-    public float lostPlayerFreezeTime = 3f; // Time the agent freezes after losing the player
+    public float lostPlayerFreezeTime = 3f;
 
     private bool isPlayerInRange = false;
     private bool isPlayerInVisionAngle = false;
@@ -14,104 +15,58 @@ public class Chase : MonoBehaviour
     private Vector3 lastKnownPlayerPosition;
     private NavMeshAgent agent;
     private Animator animator;
-    private bool wasPlayerInRange = false;
-    private bool wasPlayerInVisionAngle = false;
-    private float lostPlayerTimer = 0f;
-    private bool isReturningToLastKnownPosition = false;
-    private Sneak playerSneakScript;
+    private AIStateManager stateManager;
     private PatrolAgent patrolAgent;
-    private bool isPatrolling = true;
+    private float lostPlayerTimer = 0f;
+    private bool isIdling = false;
+    private Coroutine idleCoroutine;
 
     private void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
+        stateManager = GetComponent<AIStateManager>();
         patrolAgent = GetComponent<PatrolAgent>();
-        agent.speed = patrolAgent.waitTimeMin; // Set the initial speed to the minimum patrol speed
 
-        // Get the Sneak script from the player
+        // Find the player
         GameObject player = GameObject.FindGameObjectWithTag("Player");
-        playerSneakScript = player.GetComponent<Sneak>();
+        if (player != null)
+        {
+            playerTransform = player.transform;
+        }
     }
 
     private void Update()
     {
         DetectPlayer();
 
-        if (isPlayerInRange)
+        if (isPlayerInRange && isPlayerInVisionAngle)
         {
-            if (playerSneakScript.IsSneaking())
-            {
-                // If the player is in sneak mode and within the vision range, ignore them
-                if (isPlayerInVisionAngle)
-                {
-                    ChasePlayer();
-                    lastKnownPlayerPosition = playerTransform.position;
-                    isReturningToLastKnownPosition = false;
-                    isPatrolling = false;
-                    Debug.Log("Agent is in chase mode");
-                }
-                else
-                {
-                    if (!isPatrolling)
-                    {
-                        isPatrolling = true;
-                        agent.speed = patrolAgent.waitTimeMin;
-                        patrolAgent.MoveToNextWaypoint(); // Resume patrolling
-                        Debug.Log("Agent is in patrol mode");
-                    }
-                }
-            }
-            else
-            {
-                // If the player is not in sneak mode, always turn to face them
-                TurnToFacePlayer();
+            lastKnownPlayerPosition = playerTransform.position;
+            lostPlayerTimer = lostPlayerFreezeTime; // Reset the timer
 
-                if (isPlayerInVisionAngle)
-                {
-                    ChasePlayer();
-                    lastKnownPlayerPosition = playerTransform.position;
-                    isReturningToLastKnownPosition = false;
-                    isPatrolling = false;
-                    Debug.Log("Agent is in chase mode");
-                }
-                else
-                {
-                    if (!isPatrolling)
-                    {
-                        isPatrolling = true;
-                        agent.speed = patrolAgent.waitTimeMin;
-                        patrolAgent.MoveToNextWaypoint(); // Resume patrolling
-                        Debug.Log("Agent is in patrol mode");
-                    }
-                }
-            }
-        }
-        else
-        {
-            if (wasPlayerInRange)
+            // Stop idling if currently idling
+            if (isIdling && idleCoroutine != null)
             {
-                StopChasing();
-                isPatrolling = true;
-                patrolAgent.MoveToNextWaypoint(); // Resume patrolling
+                StopCoroutine(idleCoroutine);
+                isIdling = false;
             }
-        }
 
-        if (isReturningToLastKnownPosition)
-        {
-            ReturnToLastKnownPosition();
-            Debug.Log("Agent is returning to last known position");
+            // Switch to chase state
+            stateManager.ChangeState(AIStateManager.AIState.Chasing);
+            ChasePlayer();
         }
-        else
+        else if (!isPlayerInRange && !isIdling)
         {
-            if (lostPlayerTimer > 0f)
+            lostPlayerTimer -= Time.deltaTime;
+
+            if (lostPlayerTimer <= 0f)
             {
-                lostPlayerTimer -= Time.deltaTime;
+                // Start idling
+                isIdling = true;
+                idleCoroutine = StartCoroutine(IdleBeforePatrolling());
             }
         }
-
-        wasPlayerInRange = isPlayerInRange;
-        wasPlayerInVisionAngle = isPlayerInVisionAngle;
     }
 
     private void DetectPlayer()
@@ -125,51 +80,32 @@ public class Chase : MonoBehaviour
             // Check if the player is within the vision range
             if (Vector3.Distance(transform.position, playerTransform.position) <= visionRange)
             {
+                // Calculate the direction to the player
+                Vector3 directionToPlayer = (playerTransform.position - transform.position).normalized;
+
                 // Check if the player is within the vision angle
                 Vector3 agentForward = transform.forward;
-                Vector3 directionToPlayer = (playerTransform.position - transform.position).normalized;
                 float angle = Vector3.Angle(agentForward, directionToPlayer);
-                isPlayerInVisionAngle = angle <= visionAngle / 2f;
-
-                if (isPlayerInVisionAngle)
+                if (angle <= visionAngle / 2f)
                 {
-                    // Perform a raycast to check if there's a direct line of sight to the player
+                    // Perform a Raycast to check if there's a clear line of sight to the player
                     RaycastHit hit;
-                    if (Physics.Raycast(transform.position, directionToPlayer, out hit, visionRange))
+                    if (Physics.Raycast(transform.position + Vector3.up, directionToPlayer, out hit, visionRange))
                     {
-                        if (hit.collider.CompareTag("Player"))
+                        if (hit.transform.CompareTag("Player"))
                         {
-                            
-                            if (!isPlayerInRange)
-                            {
-                                Debug.Log("Player entered vision range and line of sight");
-                            }
                             isPlayerInRange = true;
-                        }
-                        else
-                        {
-                        
-                            isPlayerInRange = false;
-                            isPlayerInVisionAngle = false;
+                            isPlayerInVisionAngle = true;
+                            return;
                         }
                     }
                 }
-                else
-                {
-                    isPlayerInRange = false;
-                }
-            }
-            else
-            {
-                isPlayerInRange = false;
-                isPlayerInVisionAngle = false;
             }
         }
-        else
-        {
-            isPlayerInRange = false;
-            isPlayerInVisionAngle = false;
-        }
+
+        // If the player is not detected, reset the flags
+        isPlayerInRange = false;
+        isPlayerInVisionAngle = false;
     }
 
 
@@ -181,39 +117,36 @@ public class Chase : MonoBehaviour
         animator.SetBool("isIdle", false);
     }
 
-    private void TurnToFacePlayer()
+    private IEnumerator IdleBeforePatrolling()
     {
-        // Calculate the rotation to face the player
-        Quaternion targetRotation = Quaternion.LookRotation(playerTransform.position - transform.position);
-        transform.rotation = Quaternion.Lerp(transform.rotation, targetRotation, Time.deltaTime * 5f);
-    }
+        float idleTime = 0f;
 
-    private void StopChasing()
-    {
-        agent.speed = patrolAgent.waitTimeMin;
-        agent.ResetPath();
+        // Idle while waiting for waitTimeMin
         animator.SetBool("isWalking", false);
         animator.SetBool("isIdle", true);
-        isReturningToLastKnownPosition = true;
-        lostPlayerTimer = lostPlayerFreezeTime;
-        Debug.Log("Heading to last seen location");
-    }
 
-    private void ReturnToLastKnownPosition()
-    {
-        agent.SetDestination(lastKnownPlayerPosition);
-        animator.SetBool("isWalking", true);
-        animator.SetBool("isIdle", false);
-
-        if (agent.remainingDistance <= agent.stoppingDistance)
+        while (idleTime < patrolAgent.waitTimeMin)
         {
-            agent.speed = patrolAgent.waitTimeMin;
-            animator.SetBool("isWalking", false);
-            animator.SetBool("isIdle", true);
-            isReturningToLastKnownPosition = false;
-            Debug.Log("Returning to patrol");
+            // Check if the player is detected during idling
+            DetectPlayer();
+            if (isPlayerInRange && isPlayerInVisionAngle)
+            {
+                // Break out of idling if the player is seen
+                stateManager.ChangeState(AIStateManager.AIState.Chasing);
+                ChasePlayer();
+                yield break;
+            }
+
+            idleTime += Time.deltaTime;
+            yield return null;
         }
+
+        // Return to patrolling state after idling
+        stateManager.ChangeState(AIStateManager.AIState.Patrolling);
+        patrolAgent.MoveToNextWaypoint();
+        isIdling = false;
     }
+
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
