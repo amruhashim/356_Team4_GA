@@ -117,7 +117,8 @@ public class PatrolAgent : MonoBehaviour
                     RaycastHit hit;
                     if (Physics.Raycast(transform.position + Vector3.up, directionToPlayer, out hit, visionRange))
                     {
-                        if (hit.transform.CompareTag("Player"))
+                        Debug.Log(hit.transform.gameObject.name);
+                        if (hit.transform.CompareTag("Drone"))
                         {
                             isPlayerInRange = true;
                             isPlayerInVisionAngle = true;

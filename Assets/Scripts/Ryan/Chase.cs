@@ -83,7 +83,9 @@ public class Chase : MonoBehaviour
     private void DetectPlayer()
     {
         // Find the player transform
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        //GameObject player = GameObject.FindGameObjectWithTag("Player");
+        GameObject player = GameObject.FindGameObjectWithTag("Drone");
+        Debug.Log(player.name);
         if (player != null)
         {
             playerTransform = player.transform;
