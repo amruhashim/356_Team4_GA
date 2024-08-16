@@ -21,12 +21,23 @@ public class Chase : MonoBehaviour
     private bool isIdling = false;
     private Coroutine idleCoroutine;
 
+    private float chaseTimer = 0f;
+    private float shootTimer = 0f;
+    private bool isChasing = true;
+
+    public GameObject bulletPrefab; // Assign the bullet prefab in the Inspector
+    public Transform firePoint; // The point from which bullets will be fired
+    public float shootInterval = 0.5f; // Interval between shots
+    private AudioSource audioSource;
+    public AudioClip shootSound;
+
     private void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
         stateManager = GetComponent<AIStateManager>();
         patrolAgent = GetComponent<PatrolAgent>();
+        audioSource = GetComponent<AudioSource>();
 
         // Find the player
         GameObject player = GameObject.FindGameObjectWithTag("Player");
@@ -111,10 +122,50 @@ public class Chase : MonoBehaviour
 
     private void ChasePlayer()
     {
-        agent.speed = chasingSpeed;
-        agent.SetDestination(playerTransform.position);
-        animator.SetBool("isWalking", true);
-        animator.SetBool("isIdle", false);
+        if (isChasing)
+        {
+            agent.speed = chasingSpeed;
+            agent.SetDestination(playerTransform.position);
+            animator.SetBool("isWalking", true);
+            animator.SetBool("isIdle", false);
+            animator.SetBool("isFiring", false);
+
+            chaseTimer += Time.deltaTime;
+            if (chaseTimer >= 2f)
+            {
+                isChasing = false;
+                chaseTimer = 0f;
+            }
+        }
+        else
+        {
+            agent.speed = 0f;
+            agent.ResetPath();
+            animator.SetBool("isWalking", false);
+            animator.SetBool("isIdle", false);
+            animator.SetBool("isFiring", true);
+
+            shootTimer += Time.deltaTime;
+            if (shootTimer >= shootInterval)
+            {
+                audioSource.PlayOneShot(shootSound); // Play the shooting sound
+                FireBullet(); // Call the function to fire a bullet
+                shootTimer = 0f; // Reset the timer
+            }
+
+            chaseTimer += Time.deltaTime;
+            if (chaseTimer >= 2f)
+            {
+                isChasing = true;
+                chaseTimer = 0f;
+            }
+        }
+    }
+
+        void FireBullet()
+    {
+        // Create a bullet from the prefab
+        Instantiate(bulletPrefab, firePoint.position, firePoint.rotation);
     }
 
     private IEnumerator IdleBeforePatrolling()
