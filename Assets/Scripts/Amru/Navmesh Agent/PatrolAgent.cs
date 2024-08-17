@@ -1,3 +1,7 @@
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+
 using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
@@ -47,9 +51,12 @@ public class PatrolAgent : MonoBehaviour
     private Vector3 initialPosition;
     private Image healthBarBackground;
     private AIStateManager stateManager;
-    private Transform playerTransform;
-    private bool isPlayerInRange = false;
-    private bool isPlayerInVisionAngle = false;
+    private Transform detectedTarget;
+    private bool isTargetInRange = false;
+    private bool isTargetInVisionAngle = false;
+
+
+
     #endregion
 
     #region Unity Methods
@@ -61,16 +68,10 @@ public class PatrolAgent : MonoBehaviour
         healthBarBackground = healthBar.transform.Find("Background").GetComponent<Image>();
         stateManager = GetComponent<AIStateManager>();
 
-        // Get the player transform
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            playerTransform = player.transform;
-        }
-
         InitializeHealthBar();
         initialPosition = transform.position;
         MoveToNextWaypoint();
+        stateManager = GetComponent<AIStateManager>();
     }
 
     private void Update()
@@ -83,11 +84,11 @@ public class PatrolAgent : MonoBehaviour
                 ReachedWaypoint(agent.transform.position);
             }
 
-            // Detect player while patrolling
-            DetectPlayer();
+            // Detect target while patrolling
+            DetectTarget();
 
-            // If the player is detected, switch to Chasing state
-            if (isPlayerInRange && isPlayerInVisionAngle)
+            // If the target is detected, switch to Chasing state
+            if (isTargetInRange && isTargetInVisionAngle)
             {
                 stateManager.ChangeState(AIStateManager.AIState.Chasing);
             }
@@ -98,42 +99,50 @@ public class PatrolAgent : MonoBehaviour
     #endregion
 
     #region Detection Methods
-    private void DetectPlayer()
+    public float minDetectionDistance = 2.0f; // adjust this value as needed
+
+    private void DetectTarget()
     {
-        if (playerTransform != null)
+        isTargetInRange = false;
+        isTargetInVisionAngle = false;
+
+        // Use OverlapSphere to detect all objects within vision range
+        Collider[] hits = Physics.OverlapSphere(transform.position, visionRange);
+        foreach (Collider hit in hits)
         {
-            float distanceToPlayer = Vector3.Distance(transform.position, playerTransform.position);
-
-            if (distanceToPlayer <= visionRange)
+            foreach (AIStateManager.TargetType targetType in System.Enum.GetValues(typeof(AIStateManager.TargetType)))
             {
-                Vector3 directionToPlayer = (playerTransform.position - transform.position).normalized;
+                string tag = stateManager.GetTagForTarget(targetType);
 
-                // Check if the player is within the vision angle
-                Vector3 agentForward = transform.forward;
-                float angle = Vector3.Angle(agentForward, directionToPlayer);
-                if (angle <= visionAngle / 2f)
+                if (hit.CompareTag(tag))
                 {
-                    // Perform a Raycast to check if there's a clear line of sight to the player
-                    RaycastHit hit;
-                    if (Physics.Raycast(transform.position + Vector3.up, directionToPlayer, out hit, visionRange))
+                    Vector3 directionToTarget = (hit.transform.position - transform.position).normalized;
+                    float angle = Vector3.Angle(transform.forward, directionToTarget);
+                    float distanceToTarget = Vector3.Distance(transform.position, hit.transform.position);
+
+                    // Detect target if within a minimum distance regardless of angle
+                    if (distanceToTarget <= minDetectionDistance || angle <= visionAngle / 2f)
                     {
-                        Debug.Log(hit.transform.gameObject.name);
-                        if (hit.transform.CompareTag("Drone"))
-                        {
-                            isPlayerInRange = true;
-                            isPlayerInVisionAngle = true;
-                            return;
-                        }
+                        isTargetInRange = true;
+                        isTargetInVisionAngle = true;
+                        detectedTarget = hit.transform;
+
+                        Debug.Log($"PatrolAgent: Target with tag {tag} detected within range and vision angle.");
+                        stateManager.ChangeState(AIStateManager.AIState.Chasing, targetType);
+                        return; // Exit once the correct target is found
                     }
                 }
             }
         }
 
-        // If the player is not detected, reset the flags
-        isPlayerInRange = false;
-        isPlayerInVisionAngle = false;
+        //Debug.Log("PatrolAgent: No valid targets found.");
     }
 
+
+    public Transform GetDetectedTarget()
+    {
+        return detectedTarget;
+    }
     #endregion
 
     #region Waypoint Methods
@@ -261,5 +270,84 @@ public class PatrolAgent : MonoBehaviour
 
         healthBarCanvas.Rotate(0, 0, 0);
     }
+
+
+#if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        // Custom GUIStyle for text with background
+        GUIStyle labelStyle = new GUIStyle
+        {
+            normal = { textColor = Color.black },
+            fontStyle = FontStyle.Bold,
+            alignment = TextAnchor.MiddleCenter,
+            padding = new RectOffset(5, 5, 5, 5) // Padding around the text
+        };
+
+        // Background color for labels
+        Color backgroundColor = new Color(1f, 1f, 0.8f, 0.8f); // Light yellow
+
+        // Fluorescent purple color
+        Color fluorescentPurple = new Color(0.75f, 0.0f, 1.0f); // Strong purple
+
+        // Set Gizmo color based on detection status
+        Gizmos.color = isTargetInRange && isTargetInVisionAngle ? fluorescentPurple : new Color(0.5f, 0.0f, 0.75f); // Fluorescent purple or a slightly darker purple
+
+        // Draw a bold detection range sphere by layering multiple spheres
+        for (float i = 0; i < 3; i += 0.1f)
+        {
+            Gizmos.DrawWireSphere(transform.position, visionRange + i * 0.05f);
+        }
+
+        // Label the patrol vision range sphere
+        DrawLabelWithBackground(transform.position + Vector3.up * (visionRange + 1f), "Patrol Vision Range", labelStyle, backgroundColor);
+
+        // Draw the vision cone with thicker lines
+        Vector3 forward = transform.forward * visionRange;
+        Vector3 leftBoundary = Quaternion.Euler(0, -visionAngle / 2, 0) * forward;
+        Vector3 rightBoundary = Quaternion.Euler(0, visionAngle / 2, 0) * forward;
+
+        // Draw multiple lines for a thicker effect
+        Gizmos.color = fluorescentPurple;
+        for (float offset = -0.1f; offset <= 0.1f; offset += 0.05f)
+        {
+            Gizmos.DrawRay(transform.position + new Vector3(offset, 0, 0), leftBoundary);
+            Gizmos.DrawRay(transform.position + new Vector3(offset, 0, 0), rightBoundary);
+        }
+
+        // Draw an arc for the vision cone with low opacity
+        Handles.color = new Color(0.75f, 0.0f, 1.0f, 0.1f); // Very low opacity fluorescent purple
+        Handles.DrawSolidArc(transform.position, Vector3.up, leftBoundary.normalized, visionAngle, visionRange);
+
+        // Label the vision range
+        DrawLabelWithBackground(transform.position + forward.normalized * (visionRange + 1f), "Vision Range", labelStyle, backgroundColor);
+
+        // Draw labels for the state and vision range
+        DrawLabelWithBackground(transform.position + Vector3.up * 2, $"State: {stateManager?.currentState ?? AIStateManager.AIState.Patrolling}", labelStyle, backgroundColor);
+        DrawLabelWithBackground(transform.position + forward.normalized * visionRange, $"Vision Range: {visionRange}m", labelStyle, backgroundColor);
+    }
+
+    private void DrawLabelWithBackground(Vector3 position, string text, GUIStyle style, Color backgroundColor)
+    {
+        Handles.BeginGUI();
+
+        // Convert the 3D position to a 2D GUI position
+        Vector2 guiPosition = HandleUtility.WorldToGUIPoint(position);
+
+        // Calculate the size of the text
+        Vector2 size = style.CalcSize(new GUIContent(text));
+
+        // Draw a background rectangle
+        EditorGUI.DrawRect(new Rect(guiPosition.x - size.x / 2, guiPosition.y - size.y / 2, size.x, size.y), backgroundColor);
+
+        // Draw the label
+        GUI.Label(new Rect(guiPosition.x - size.x / 2, guiPosition.y - size.y / 2, size.x, size.y), text, style);
+
+        Handles.EndGUI();
+    }
+#endif
+
+
+
     #endregion
 }

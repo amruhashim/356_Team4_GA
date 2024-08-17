@@ -9,17 +9,20 @@ public class AmmoManager : MonoBehaviour
     public Slider throwForceSlider;
     public TextMeshProUGUI chargeTimeDisplay;  
 
-    private void Awake()
+private void Awake()
+{
+    if (Instance != null && Instance != this)
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-        }
-        else
-        {
-            Instance = this;
-        }
+        Debug.LogWarning("Multiple AmmoManager instances detected. Destroying extra instances.");
+        Destroy(gameObject);
     }
+    else
+    {
+        Debug.Log("AmmoManager instance set.");
+        Instance = this;
+    }
+}
+
 
     public void UpdateAmmoDisplay(Weapon weapon)
     {

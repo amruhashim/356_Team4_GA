@@ -2,19 +2,27 @@ using UnityEngine;
 
 public class AIStateManager : MonoBehaviour
 {
-    // Define the AIState enum within the AIStateManager class
     public enum AIState
     {
         Patrolling,
-        Chasing,
-        ReturningToLastKnownPosition
+        Chasing
     }
 
-    // Public variable to hold the current state
+    public enum TargetType
+    {
+        Player,
+        Drone
+    }
+
     public AIState currentState = AIState.Patrolling;
+
+    [Tooltip("Define the target tags here.")]
+    public string[] targetTags = { "Player", "Drone" };
 
     public PatrolAgent patrolAgent;
     public Chase chaseScript;
+
+    private TargetType detectedTargetType;
 
     private void Start()
     {
@@ -34,13 +42,26 @@ public class AIStateManager : MonoBehaviour
             case AIState.Chasing:
                 patrolAgent.enabled = false;
                 chaseScript.enabled = true;
+                chaseScript.SetTarget(patrolAgent.GetDetectedTarget(), detectedTargetType);
                 break;
         }
+    }
+
+    public void ChangeState(AIState newState, TargetType targetType)
+    {
+        detectedTargetType = targetType;
+        currentState = newState;
+        Update();
     }
 
     public void ChangeState(AIState newState)
     {
         currentState = newState;
-        Update();  // Ensure that the state change is reflected immediately
+        Update();
+    }
+
+    public string GetTagForTarget(TargetType targetType)
+    {
+        return targetTags[(int)targetType];
     }
 }
