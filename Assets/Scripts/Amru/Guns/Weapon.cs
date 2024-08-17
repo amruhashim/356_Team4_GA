@@ -1,5 +1,4 @@
 using System.Collections;
-using TMPro;
 using UnityEngine;
 
 public class Weapon : MonoBehaviour
@@ -41,8 +40,8 @@ public class Weapon : MonoBehaviour
     public float spreadIntensity;
 
     [Header("Ammo Management")]
-    [HideInInspector] public int accumulatedBullets = 0;
-    [HideInInspector] public int bulletsLeft = 0;
+    public int accumulatedBullets = 0;
+    public int bulletsLeft = 0;
 
     [Header("Audio Settings")]
     public AudioClip shootingSound;
@@ -70,46 +69,23 @@ public class Weapon : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
     }
 
-private void Start()
-{
-    // Instantiate the bullet and set its position and rotation
-    GameObject instantiated = Instantiate(bulletPrefab, bulletSpawn.position, Quaternion.identity);
-    instantiated.transform.SetPositionAndRotation(bulletSpawn.position, Quaternion.LookRotation(bulletSpawn.forward));
-
-    // Destroy the instantiated bullet immediately so it's not visible in the game
-    Destroy(instantiated);
-
-    // Get the AnimationController component
-    animatorController = GetComponent<AnimationController>();
-
-    // Load bullets left and accumulated bullets from PlayerState or reset for a new game
-    if (PlayerState.Instance != null && PlayerState.Instance.IsNewGame())
+    private void Start()
     {
-        ResetBullets(); // Initialize with default values for a new game
+        animatorController = GetComponent<AnimationController>();
     }
-    else
-    {
-        LoadBulletsFromPlayerState(); // Load from saved data
-    }
-}
-
 
     private void Update()
     {
-        // Ensure the weapon only reacts to input when the cursor is locked
         if (Cursor.lockState != CursorLockMode.Locked)
             return;
 
-        // Handle input for shooting
         HandleShootingInput();
 
-        // Handle reloading
         if (Input.GetKeyDown(KeyCode.R) && bulletsLeft < magazineSize && !isReloading && accumulatedBullets > 0)
         {
             Reload();
         }
 
-        // Update ammo display
         UpdateAmmoDisplay();
     }
 
@@ -180,8 +156,7 @@ private void Start()
             Invoke("ResetShot", shootingDelay);
         }
 
-        // Save bullets left to PlayerState
-        SaveBulletsToPlayerState();
+        SaveBulletsToPlayerState(); // Save bullets state after firing
     }
 
     private IEnumerator FireMachineGun()
@@ -196,8 +171,7 @@ private void Start()
             bulletsLeft--;
             yield return new WaitForSeconds(shootingDelay);
 
-            // Save bullets left to PlayerState
-            SaveBulletsToPlayerState();
+            SaveBulletsToPlayerState(); // Save bullets state after firing
         }
 
         animatorController.SetShooting(false);
@@ -264,9 +238,7 @@ private void Start()
         isReloading = false;
         readyToShoot = true;
 
-        // Save bullets left and accumulated bullets to PlayerState
-        SaveBulletsToPlayerState();
-
+        SaveBulletsToPlayerState(); // Save bullets state after reloading
         UpdateAmmoDisplay();
     }
 
@@ -277,10 +249,7 @@ private void Start()
     public void CollectAmmo(int ammoAmount)
     {
         accumulatedBullets += ammoAmount;
-
-        // Save accumulated bullets to PlayerState
         SaveBulletsToPlayerState();
-
         UpdateAmmoDisplay();
     }
 
@@ -294,16 +263,16 @@ private void Start()
 
     private void SaveBulletsToPlayerState()
     {
-        if (PlayerState.Instance.activeWeaponID == weaponID)
+        if (PlayerState.Instance != null && PlayerState.Instance.activeWeaponID == weaponID)
         {
             PlayerState.Instance.bulletsLeft = bulletsLeft;
             PlayerState.Instance.accumulatedBullets = accumulatedBullets;
         }
     }
 
-    private void LoadBulletsFromPlayerState()
+    public void LoadBulletsFromPlayerState()
     {
-        if (PlayerState.Instance.activeWeaponID == weaponID)
+        if (PlayerState.Instance != null && PlayerState.Instance.activeWeaponID == weaponID)
         {
             bulletsLeft = PlayerState.Instance.bulletsLeft;
             accumulatedBullets = PlayerState.Instance.accumulatedBullets;
@@ -314,7 +283,7 @@ private void Start()
     {
         bulletsLeft = magazineSize;
         accumulatedBullets = magazineSize;
-        SaveBulletsToPlayerState();
+        SaveBulletsToPlayerState(); // Save the full magazine to PlayerState
     }
 
     #endregion
@@ -323,13 +292,9 @@ private void Start()
 
     public Vector3 CalculateDirectionAndSpread()
     {
-        // Calculate the forward direction of the camera
         Vector3 forwardDirection = playerCamera.transform.forward;
-
-        // Calculate the spread using camera's right and up directions
         float x = Random.Range(-spreadIntensity, spreadIntensity);
         float y = Random.Range(-spreadIntensity, spreadIntensity);
-
         Vector3 spread = playerCamera.transform.right * x + playerCamera.transform.up * y;
         Vector3 finalDirection = (forwardDirection + spread).normalized;
 
