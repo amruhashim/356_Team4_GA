@@ -39,6 +39,7 @@ public class PlayerState : MonoBehaviour
                 {
                     currentHealth = 0;
                 }
+                Debug.Log($"Current Health after taking damage: {currentHealth}");
                 SavePlayerData();
             }
         }
@@ -54,30 +55,8 @@ public class PlayerState : MonoBehaviour
         PlayerPrefs.SetFloat("playerRotationY", playerTransform.rotation.eulerAngles.y);
         PlayerPrefs.SetFloat("playerRotationZ", playerTransform.rotation.eulerAngles.z);
         PlayerPrefs.Save();
-    }
 
-    public void LoadPlayerData()
-    {
-        if (PlayerPrefs.HasKey("playerStarted"))
-        {
-            currentHealth = PlayerPrefs.GetFloat("currentHealth", maxHealth);
-            playerTransform.position = new Vector3(
-                PlayerPrefs.GetFloat("playerPositionX"),
-                PlayerPrefs.GetFloat("playerPositionY"),
-                PlayerPrefs.GetFloat("playerPositionZ")
-            );
-            playerTransform.rotation = Quaternion.Euler(
-                PlayerPrefs.GetFloat("playerRotationX"),
-                PlayerPrefs.GetFloat("playerRotationY"),
-                PlayerPrefs.GetFloat("playerRotationZ")
-            );
-        }
-        else
-        {
-            currentHealth = maxHealth;
-            PlayerPrefs.SetInt("playerStarted", 1);
-            SavePlayerData();
-        }
+        Debug.Log("Player data saved.");
     }
 
     public void InitializeNewPlayerData()
@@ -91,5 +70,32 @@ public class PlayerState : MonoBehaviour
         SavePlayerData();
 
         Debug.Log("New player data initialized");
+    }
+
+    public void LoadPlayerData()
+    {
+        if (PlayerPrefs.HasKey("playerStarted"))
+        {
+            currentHealth = PlayerPrefs.GetFloat("currentHealth", maxHealth);
+            Debug.Log($"Loaded Current Health: {currentHealth}");
+
+            // Load position and rotation from PlayerPrefs
+            playerTransform.position = new Vector3(
+                PlayerPrefs.GetFloat("playerPositionX"),
+                PlayerPrefs.GetFloat("playerPositionY"),
+                PlayerPrefs.GetFloat("playerPositionZ")
+            );
+            playerTransform.rotation = Quaternion.Euler(
+                PlayerPrefs.GetFloat("playerRotationX"),
+                PlayerPrefs.GetFloat("playerRotationY"),
+                PlayerPrefs.GetFloat("playerRotationZ")
+            );
+        }
+        else
+        {
+            // For a new game, initialize data instead of loading
+            InitializeNewPlayerData();
+            PlayerPrefs.SetInt("playerStarted", 1);
+        }
     }
 }
