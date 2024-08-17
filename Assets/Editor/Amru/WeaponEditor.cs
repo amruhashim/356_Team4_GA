@@ -9,6 +9,7 @@ public class WeaponEditor : Editor
     SerializedProperty bulletSpawn;
     SerializedProperty muzzleEffect;
     SerializedProperty GunType;
+    SerializedProperty weaponID;
     SerializedProperty reloadTime;
     SerializedProperty magazineSize;
     SerializedProperty bulletsLeft;
@@ -33,6 +34,7 @@ public class WeaponEditor : Editor
         bulletSpawn = serializedObject.FindProperty("bulletSpawn");
         muzzleEffect = serializedObject.FindProperty("muzzleEffect");
         GunType = serializedObject.FindProperty("GunType");
+        weaponID = serializedObject.FindProperty("weaponID");
         reloadTime = serializedObject.FindProperty("reloadTime");
         magazineSize = serializedObject.FindProperty("magazineSize");
         bulletsLeft = serializedObject.FindProperty("bulletsLeft");
@@ -61,10 +63,10 @@ public class WeaponEditor : Editor
         EditorGUILayout.PropertyField(muzzleEffect);
 
         EditorGUILayout.PropertyField(GunType);
+        EditorGUILayout.PropertyField(weaponID);
 
         EditorGUILayout.PropertyField(reloadTime);
         EditorGUILayout.PropertyField(magazineSize);
-        EditorGUILayout.PropertyField(bulletsLeft);
         EditorGUILayout.PropertyField(isReloading);
 
         EditorGUILayout.PropertyField(bulletVelocity);
@@ -85,7 +87,12 @@ public class WeaponEditor : Editor
         }
 
         EditorGUILayout.PropertyField(spreadIntensity);
+
+        // Make bulletsLeft and accumulatedBullets read-only
+        GUI.enabled = false; // Disable editing
+        EditorGUILayout.PropertyField(bulletsLeft);
         EditorGUILayout.PropertyField(accumulatedBullets);
+        GUI.enabled = true; // Re-enable editing for other fields
 
         EditorGUILayout.PropertyField(shootingSound);
         EditorGUILayout.PropertyField(reloadSound);

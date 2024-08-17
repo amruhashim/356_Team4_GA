@@ -4,11 +4,14 @@ using UnityEngine;
 
 public class PlayerState : MonoBehaviour
 {
-    public static PlayerState Instance { get; set; }
+    public static PlayerState Instance { get; private set; }
 
     public Transform playerTransform;
     public float currentHealth;
     public float maxHealth;
+    public string activeWeaponID;  // Store the current weapon's ID
+    public int bulletsLeft;        // Store bullets left for the active weapon
+    public int accumulatedBullets; // Store accumulated bullets for the active weapon
 
     private void Awake()
     {
@@ -54,8 +57,15 @@ public class PlayerState : MonoBehaviour
         PlayerPrefs.SetFloat("playerRotationX", playerTransform.rotation.eulerAngles.x);
         PlayerPrefs.SetFloat("playerRotationY", playerTransform.rotation.eulerAngles.y);
         PlayerPrefs.SetFloat("playerRotationZ", playerTransform.rotation.eulerAngles.z);
-        PlayerPrefs.Save();
 
+        if (!string.IsNullOrEmpty(activeWeaponID))
+        {
+            PlayerPrefs.SetString("activeWeaponID", activeWeaponID);  // Save the active weapon ID
+            PlayerPrefs.SetInt("bulletsLeft", bulletsLeft);           // Save bullets left for the active weapon
+            PlayerPrefs.SetInt("accumulatedBullets", accumulatedBullets); // Save accumulated bullets for the active weapon
+        }
+
+        PlayerPrefs.Save();
         Debug.Log("Player data saved.");
     }
 
@@ -66,6 +76,19 @@ public class PlayerState : MonoBehaviour
         // Reset position and rotation to the initial spawn point
         playerTransform.position = Vector3.zero; // Customize the spawn point if needed
         playerTransform.rotation = Quaternion.identity;
+
+        activeWeaponID = null; // No active weapon for a new player
+
+        // Notify all weapons to reset their bullets to default values
+        Weapon[] weapons = FindObjectsOfType<Weapon>();
+        foreach (Weapon weapon in weapons)
+        {
+            weapon.ResetBullets();
+        }
+
+        // Save that the player has started the game
+        PlayerPrefs.SetInt("playerStarted", 1);
+        PlayerPrefs.Save();
 
         SavePlayerData();
 
@@ -90,12 +113,34 @@ public class PlayerState : MonoBehaviour
                 PlayerPrefs.GetFloat("playerRotationY"),
                 PlayerPrefs.GetFloat("playerRotationZ")
             );
+
+            // Load active weapon ID if available
+            if (PlayerPrefs.HasKey("activeWeaponID"))
+            {
+                activeWeaponID = PlayerPrefs.GetString("activeWeaponID");
+                Debug.Log($"Loaded Active Weapon ID: {activeWeaponID}");
+
+                // Load bullets left and accumulated bullets for the active weapon
+                bulletsLeft = PlayerPrefs.GetInt("bulletsLeft", 0);
+                accumulatedBullets = PlayerPrefs.GetInt("accumulatedBullets", 0);
+            }
+            else
+            {
+                activeWeaponID = null;
+                bulletsLeft = 0;
+                accumulatedBullets = 0;
+            }
         }
         else
         {
             // For a new game, initialize data instead of loading
             InitializeNewPlayerData();
-            PlayerPrefs.SetInt("playerStarted", 1);
         }
+    }
+
+    // Method to check if it's a new game
+    public bool IsNewGame()
+    {
+        return !PlayerPrefs.HasKey("playerStarted");
     }
 }

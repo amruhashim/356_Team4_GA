@@ -1,5 +1,13 @@
 using UnityEngine;
 using Cinemachine;
+using System.Collections.Generic;
+
+[System.Serializable]
+public class WeaponEntry
+{
+    public string weaponID;
+    public GameObject weaponPrefab;
+}
 
 public class WeaponSwitcher : MonoBehaviour
 {
@@ -22,31 +30,51 @@ public class WeaponSwitcher : MonoBehaviour
     public GameObject[] objectsToDisable;
     public MonoBehaviour[] scriptsToDisable;
 
-private void Start()
-{
-    if (mainCamera == null)
+    [Header("Weapon Configuration")]
+    public List<WeaponEntry> weaponEntries; // Add weapons in the inspector
+
+    private Dictionary<string, GameObject> weaponDictionary;
+
+    private void Start()
     {
-        mainCamera = Camera.main; // Automatically assign the main camera in the scene
+        if (mainCamera == null)
+        {
+            mainCamera = Camera.main; // Automatically assign the main camera in the scene
+        }
+
+        playerCamera.Priority = 10;  
+        droneCamera.Priority = 0;    
+
+        // Instantiate and set up the grenade hand model
+        grenadeHandInstance = Instantiate(grenadeHandPrefab, handHolder);
+        grenadeHandInstance.transform.localPosition = new Vector3(0, -1.45899999f, -0.479999989f);
+        grenadeHandInstance.transform.localRotation = Quaternion.identity;
+        grenadeHandInstance.SetActive(false);
+
+        AnimationController grenadeAnimationController = grenadeHandInstance.GetComponent<AnimationController>();
+        if (grenadeAnimationController != null)
+        {
+            grenadeAnimationController.movementScript = playerMovement;
+        }
+
+        AmmoManager.Instance.throwForceSlider.gameObject.SetActive(false);
+
+        // Convert the list to a dictionary for faster lookup
+        weaponDictionary = new Dictionary<string, GameObject>();
+        foreach (var entry in weaponEntries)
+        {
+            if (!weaponDictionary.ContainsKey(entry.weaponID))
+            {
+                weaponDictionary.Add(entry.weaponID, entry.weaponPrefab);
+            }
+        }
+
+        // Initialize with the weapon stored in PlayerState (e.g., the pistol)
+        if (!string.IsNullOrEmpty(PlayerState.Instance.activeWeaponID))
+        {
+            SwitchWeaponByID(PlayerState.Instance.activeWeaponID);
+        }
     }
-
-    playerCamera.Priority = 10;  
-    droneCamera.Priority = 0;    
-
-    // Instantiate and set up the grenade hand model
-    grenadeHandInstance = Instantiate(grenadeHandPrefab, handHolder);
-    grenadeHandInstance.transform.localPosition = new Vector3(0, -1.45899999f, -0.479999989f);
-    grenadeHandInstance.transform.localRotation = Quaternion.identity;
-    grenadeHandInstance.SetActive(false);
-
-    AnimationController grenadeAnimationController = grenadeHandInstance.GetComponent<AnimationController>();
-    if (grenadeAnimationController != null)
-    {
-        grenadeAnimationController.movementScript = playerMovement;
-    }
-
-    AmmoManager.Instance.throwForceSlider.gameObject.SetActive(false);
-}
-
 
     private void Update()
     {
@@ -93,8 +121,8 @@ private void Start()
 
             if (!weaponBox.isOnCooldown)
             {
-                GameObject weaponPrefab = weaponBox.weaponPrefab;
-                SwitchWeapon(weaponPrefab);
+                string weaponID = weaponBox.weaponID;
+                SwitchWeaponByID(weaponID);
                 weaponBox.StartCooldown();
             }
         }
@@ -102,6 +130,12 @@ private void Start()
 
     private void SwitchWeapon(GameObject weaponPrefab)
     {
+        if (currentWeapon != null && currentWeapon.weaponID == weaponPrefab.GetComponent<Weapon>().weaponID)
+        {
+            Debug.Log("Same weapon equipped. No switch needed.");
+            return; // Avoid unnecessary destruction/recreation
+        }
+
         if (currentWeapon != null)
         {
             Destroy(currentWeapon.gameObject);
@@ -131,6 +165,9 @@ private void Start()
         AmmoManager.Instance.UpdateAmmoDisplay(currentWeapon);
         AmmoManager.Instance.throwForceSlider.gameObject.SetActive(false);
         AmmoManager.Instance.ammoDisplay.gameObject.SetActive(true);
+
+        // Save the active weapon ID to PlayerState
+        PlayerState.Instance.activeWeaponID = currentWeapon.weaponID;
     }
 
     private void SwitchToGrenadeHand()
@@ -216,6 +253,18 @@ private void Start()
             }
 
             isDroneActive = true;
+        }
+    }
+
+    public void SwitchWeaponByID(string weaponID)
+    {
+        if (weaponDictionary.TryGetValue(weaponID, out GameObject weaponPrefab))
+        {
+            SwitchWeapon(weaponPrefab);
+        }
+        else
+        {
+            Debug.LogWarning("Weapon ID not found in dictionary: " + weaponID);
         }
     }
 }

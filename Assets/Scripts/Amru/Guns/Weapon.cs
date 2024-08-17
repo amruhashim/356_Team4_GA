@@ -14,11 +14,11 @@ public class Weapon : MonoBehaviour
 
     [Header("Weapon Type")]
     public gunType GunType;
+    public string weaponID;
 
     [Header("Reloading & Magazine")]
     public float reloadTime;
     public int magazineSize;
-    public int bulletsLeft;
     public bool isReloading;
 
     [Header("Bullet Settings")]
@@ -41,7 +41,8 @@ public class Weapon : MonoBehaviour
     public float spreadIntensity;
 
     [Header("Ammo Management")]
-    public int accumulatedBullets = 0; 
+    [HideInInspector] public int accumulatedBullets = 0;
+    [HideInInspector] public int bulletsLeft = 0;
 
     [Header("Audio Settings")]
     public AudioClip shootingSound;
@@ -56,7 +57,6 @@ public class Weapon : MonoBehaviour
         MachineGun,
     }
 
-    
     private bool hasPlayedEmptySound = false;
     private AnimationController animatorController;
 
@@ -67,22 +67,32 @@ public class Weapon : MonoBehaviour
     private void Awake()
     {
         readyToShoot = true;
-        bulletsLeft = magazineSize;
         audioSource = GetComponent<AudioSource>();
     }
 
-    private void Start()
+private void Start()
+{
+    // Instantiate the bullet and set its position and rotation
+    GameObject instantiated = Instantiate(bulletPrefab, bulletSpawn.position, Quaternion.identity);
+    instantiated.transform.SetPositionAndRotation(bulletSpawn.position, Quaternion.LookRotation(bulletSpawn.forward));
+
+    // Destroy the instantiated bullet immediately so it's not visible in the game
+    Destroy(instantiated);
+
+    // Get the AnimationController component
+    animatorController = GetComponent<AnimationController>();
+
+    // Load bullets left and accumulated bullets from PlayerState or reset for a new game
+    if (PlayerState.Instance != null && PlayerState.Instance.IsNewGame())
     {
-        // Instantiate the bullet and set its position and rotation
-        GameObject instantiated = Instantiate(bulletPrefab, bulletSpawn.position, Quaternion.identity);
-        instantiated.transform.SetPositionAndRotation(bulletSpawn.position, Quaternion.LookRotation(bulletSpawn.forward));
-
-        // Destroy the instantiated bullet immediately so it's not visible in the game
-        Destroy(instantiated);
-
-        // Get the AnimationController component
-        animatorController = GetComponent<AnimationController>();
+        ResetBullets(); // Initialize with default values for a new game
     }
+    else
+    {
+        LoadBulletsFromPlayerState(); // Load from saved data
+    }
+}
+
 
     private void Update()
     {
@@ -169,6 +179,9 @@ public class Weapon : MonoBehaviour
             bulletsLeft--;
             Invoke("ResetShot", shootingDelay);
         }
+
+        // Save bullets left to PlayerState
+        SaveBulletsToPlayerState();
     }
 
     private IEnumerator FireMachineGun()
@@ -182,6 +195,9 @@ public class Weapon : MonoBehaviour
             FireBullet();
             bulletsLeft--;
             yield return new WaitForSeconds(shootingDelay);
+
+            // Save bullets left to PlayerState
+            SaveBulletsToPlayerState();
         }
 
         animatorController.SetShooting(false);
@@ -248,6 +264,9 @@ public class Weapon : MonoBehaviour
         isReloading = false;
         readyToShoot = true;
 
+        // Save bullets left and accumulated bullets to PlayerState
+        SaveBulletsToPlayerState();
+
         UpdateAmmoDisplay();
     }
 
@@ -258,6 +277,10 @@ public class Weapon : MonoBehaviour
     public void CollectAmmo(int ammoAmount)
     {
         accumulatedBullets += ammoAmount;
+
+        // Save accumulated bullets to PlayerState
+        SaveBulletsToPlayerState();
+
         UpdateAmmoDisplay();
     }
 
@@ -267,6 +290,31 @@ public class Weapon : MonoBehaviour
         {
             AmmoManager.Instance.ammoDisplay.text = $"{bulletsLeft}/{accumulatedBullets}";
         }
+    }
+
+    private void SaveBulletsToPlayerState()
+    {
+        if (PlayerState.Instance.activeWeaponID == weaponID)
+        {
+            PlayerState.Instance.bulletsLeft = bulletsLeft;
+            PlayerState.Instance.accumulatedBullets = accumulatedBullets;
+        }
+    }
+
+    private void LoadBulletsFromPlayerState()
+    {
+        if (PlayerState.Instance.activeWeaponID == weaponID)
+        {
+            bulletsLeft = PlayerState.Instance.bulletsLeft;
+            accumulatedBullets = PlayerState.Instance.accumulatedBullets;
+        }
+    }
+
+    public void ResetBullets()
+    {
+        bulletsLeft = magazineSize;
+        accumulatedBullets = magazineSize;
+        SaveBulletsToPlayerState();
     }
 
     #endregion

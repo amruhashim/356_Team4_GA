@@ -1,13 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
 public class WeaponBox : MonoBehaviour
 {
     #region Serialized Fields
-    [Tooltip("The weapon prefab that will be instantiated.")]
-    public GameObject weaponPrefab;
+    [Tooltip("The unique ID of the weapon to be instantiated.")]
+    public string weaponID;
 
     [Tooltip("The spotlight indicating cooldown state.")]
     public Light spotlight;
@@ -81,6 +79,17 @@ public class WeaponBox : MonoBehaviour
         directionToCamera.x = directionToCamera.z = 0; 
         cooldownCanvas.transform.LookAt(mainCamera.transform.position - directionToCamera);
         cooldownCanvas.transform.Rotate(0, 180, 0);
+    }
+    #endregion
+
+    #region Interaction Methods
+    public void InteractWithWeaponSwitcher(WeaponSwitcher weaponSwitcher)
+    {
+        if (!isOnCooldown && weaponSwitcher != null)
+        {
+            weaponSwitcher.SwitchWeaponByID(weaponID);
+            StartCooldown();
+        }
     }
     #endregion
 }
