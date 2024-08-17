@@ -122,30 +122,44 @@ public class SaveManager : MonoBehaviour
         // Setting Player Stats
         PlayerState.Instance.currentHealth = playerData.playerStats[0];
 
+
         // Setting Player Position
-        Vector3 loadedPosition = new Vector3(
-            playerData.playerPositionAndRotation[0],
-            playerData.playerPositionAndRotation[1],
-            playerData.playerPositionAndRotation[2]
-        );
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            Vector3 loadedPosition = new Vector3(
+                playerData.playerPositionAndRotation[0],
+                playerData.playerPositionAndRotation[1],
+                playerData.playerPositionAndRotation[2]
+            );
 
-        PlayerState.Instance.playerTransform.position = loadedPosition;
+            Debug.Log("Loaded position: " + loadedPosition);
 
-        // Setting Player Rotation
-        Vector3 loadedRotation = new Vector3(
-            playerData.playerPositionAndRotation[3],
-            playerData.playerPositionAndRotation[4],
-            playerData.playerPositionAndRotation[5]
-        );
+            player.transform.position = loadedPosition;
 
-        PlayerState.Instance.playerTransform.rotation = Quaternion.Euler(loadedRotation);
+            // Setting Player Rotation
+            Vector3 loadedRotation = new Vector3(
+                playerData.playerPositionAndRotation[3],
+                playerData.playerPositionAndRotation[4],
+                playerData.playerPositionAndRotation[5]
+            );
+
+            Debug.Log("Loaded rotation: " + loadedRotation);
+
+            Quaternion loadedQuaternion = Quaternion.Euler(loadedRotation);
+
+            player.transform.rotation = loadedQuaternion;
+        }
+        else
+        {
+            Debug.LogError("Player object not found!");
+        }
     }
 
 
-
-    public void StartLoadedGame()
+    public void StartLoadedGame(string sceneName)
     {
-        SceneManager.LoadScene("GameScene");
+        SceneManager.LoadScene(sceneName);
 
         StartCoroutine(DelayedLoading());
     }
@@ -155,10 +169,6 @@ public class SaveManager : MonoBehaviour
         yield return new WaitForSeconds(1f);
 
         LoadGame();
-
-
-
-
     }
     #endregion
 

@@ -15,9 +15,10 @@ public class MainMenu : MonoBehaviour
     {
         LoadGameBTN.onClick.AddListener(() =>
         {
-            SaveManager.Instance.StartLoadedGame();
+            SaveManager.Instance.StartLoadedGame(sceneName);  // Pass the sceneName from MainMenu
         });
     }
+
 
     public void NewGame()
     {
