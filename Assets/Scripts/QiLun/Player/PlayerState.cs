@@ -7,10 +7,8 @@ public class PlayerState : MonoBehaviour
     public static PlayerState Instance { get; set; }
 
     public Transform playerTransform;
-    // ---- Player Health ---- //
     public float currentHealth;
     public float maxHealth;
-
 
     private void Awake()
     {
@@ -21,19 +19,17 @@ public class PlayerState : MonoBehaviour
         else
         {
             Instance = this;
+            DontDestroyOnLoad(gameObject);
         }
     }
 
     private void Start()
     {
-        currentHealth = maxHealth;
+        // Do not load player data automatically; let SaveManager control it
     }
 
-
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        //FOR TESTING THE HEALTH BAR
         if (Input.GetKeyDown(KeyCode.K))
         {
             if (currentHealth > 0)
@@ -41,11 +37,59 @@ public class PlayerState : MonoBehaviour
                 currentHealth -= 10;
                 if (currentHealth < 0)
                 {
-                    currentHealth = 0;  // Ensure health doesn't go below 0
+                    currentHealth = 0;
                 }
+                SavePlayerData();
             }
         }
     }
+
+    public void SavePlayerData()
+    {
+        PlayerPrefs.SetFloat("currentHealth", currentHealth);
+        PlayerPrefs.SetFloat("playerPositionX", playerTransform.position.x);
+        PlayerPrefs.SetFloat("playerPositionY", playerTransform.position.y);
+        PlayerPrefs.SetFloat("playerPositionZ", playerTransform.position.z);
+        PlayerPrefs.SetFloat("playerRotationX", playerTransform.rotation.eulerAngles.x);
+        PlayerPrefs.SetFloat("playerRotationY", playerTransform.rotation.eulerAngles.y);
+        PlayerPrefs.SetFloat("playerRotationZ", playerTransform.rotation.eulerAngles.z);
+        PlayerPrefs.Save();
+    }
+
+    public void LoadPlayerData()
+    {
+        if (PlayerPrefs.HasKey("playerStarted"))
+        {
+            currentHealth = PlayerPrefs.GetFloat("currentHealth", maxHealth);
+            playerTransform.position = new Vector3(
+                PlayerPrefs.GetFloat("playerPositionX"),
+                PlayerPrefs.GetFloat("playerPositionY"),
+                PlayerPrefs.GetFloat("playerPositionZ")
+            );
+            playerTransform.rotation = Quaternion.Euler(
+                PlayerPrefs.GetFloat("playerRotationX"),
+                PlayerPrefs.GetFloat("playerRotationY"),
+                PlayerPrefs.GetFloat("playerRotationZ")
+            );
+        }
+        else
+        {
+            currentHealth = maxHealth;
+            PlayerPrefs.SetInt("playerStarted", 1);
+            SavePlayerData();
+        }
+    }
+
+    public void InitializeNewPlayerData()
+    {
+        currentHealth = maxHealth;
+
+        // Reset position and rotation to the initial spawn point
+        playerTransform.position = Vector3.zero; // Customize the spawn point if needed
+        playerTransform.rotation = Quaternion.identity;
+
+        SavePlayerData();
+
+        Debug.Log("New player data initialized");
+    }
 }
-
-
