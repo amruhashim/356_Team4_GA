@@ -17,7 +17,7 @@ public class SaveManager : MonoBehaviour
     public bool isSavingToJson;
 
     // Reference to AudioMixerController
-    public AudioMixerController audioMixerController;
+    private AudioMixerController audioMixerController;
 
     private void Awake()
     {
@@ -29,6 +29,7 @@ public class SaveManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            audioMixerController = GetComponent<AudioMixerController>(); // Direct reference to the attached AudioMixerController
         }
     }
 
@@ -39,13 +40,6 @@ public class SaveManager : MonoBehaviour
         binaryPath = Application.persistentDataPath + "/save_game.bin";
 
         LoadAndApplyVolumeSettings();
-
-          if (audioMixerController == null)
-    {
-        audioMixerController = AudioMixerController.Instance;
-    }
-
-    LoadAndApplyVolumeSettings();
     }
 
     #region Save and Load Game Data
