@@ -2,18 +2,29 @@ using UnityEngine;
 
 public class Ammo : MonoBehaviour
 {
-    public Weapon.gunType GunType;
-    public int ammoAmount = 10; 
+    public string weaponID; 
+    public int ammoAmount = 10;
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
-            
-            Weapon weapon = other.GetComponentInChildren<Weapon>();
-            if (weapon != null && weapon.GunType == GunType)
+            WeaponSwitcher weaponSwitcher = other.GetComponentInChildren<WeaponSwitcher>();
+            if (weaponSwitcher != null && weaponSwitcher.currentWeapon != null)
             {
-                weapon.CollectAmmo(ammoAmount);
-                Destroy(gameObject); // Destroy ammo object after collection
+                Weapon currentWeapon = weaponSwitcher.currentWeapon;
+
+                // Ensure the ammo is collected only if the weaponID matches
+                if (currentWeapon.weaponID == weaponID)
+                {
+                    currentWeapon.CollectAmmo(ammoAmount);
+                    Destroy(gameObject); // Destroy the ammo object after collection
+                }
+                else
+
+                {
+                    Debug.LogWarning($"Ammo for weaponID {weaponID} does not match the current weaponID {currentWeapon.weaponID}.");
+                }
             }
         }
     }

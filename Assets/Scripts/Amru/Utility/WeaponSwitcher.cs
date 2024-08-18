@@ -31,6 +31,7 @@ public class WeaponSwitcher : MonoBehaviour
 
     [Header("Weapon Configuration")]
     public List<WeaponEntry> weaponEntries;
+    public string initialWeaponID;  // Add this field to assign the initial weapon via inspector
 
     private Dictionary<string, GameObject> weaponDictionary;
 
@@ -66,10 +67,14 @@ public class WeaponSwitcher : MonoBehaviour
             }
         }
 
-        // Load the saved weapon if present
+        // Load the saved weapon if present, otherwise use the initial weapon
         if (!string.IsNullOrEmpty(PlayerState.Instance.activeWeaponID))
         {
             SwitchWeaponByID(PlayerState.Instance.activeWeaponID, true);  // Load with saved data
+        }
+        else if (!string.IsNullOrEmpty(initialWeaponID))
+        {
+            SwitchWeaponByID(initialWeaponID, false);  // Load initial weapon
         }
     }
 
@@ -125,7 +130,7 @@ public class WeaponSwitcher : MonoBehaviour
         }
     }
 
-    private void SwitchWeapon(GameObject weaponPrefab, bool isLoadingGame = false)
+private void SwitchWeapon(GameObject weaponPrefab, bool isLoadingGame = false)
 {
     if (currentWeapon != null)
     {
@@ -153,20 +158,21 @@ public class WeaponSwitcher : MonoBehaviour
 
     if (isLoadingGame)
     {
-        // Load saved bullet data for the active weapon
         currentWeapon.LoadBulletsFromPlayerState();
     }
     else
     {
-        // Reset bullets for a newly acquired weapon
         currentWeapon.ResetBullets();
         PlayerState.Instance.activeWeaponID = currentWeapon.weaponID;
     }
 
+    // Ensure AmmoManager references the new weapon
     AmmoManager.Instance.UpdateAmmoDisplay(currentWeapon);
     AmmoManager.Instance.throwForceSlider.gameObject.SetActive(false);
     AmmoManager.Instance.ammoDisplay.gameObject.SetActive(true);
 }
+
+
 
     private void SwitchToGrenadeHand()
     {
