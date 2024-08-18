@@ -9,12 +9,15 @@ public class SaveManager : MonoBehaviour
 {
     public static SaveManager Instance { get; set; }
 
-    // Json & Binary paths
+    // Paths for saving game data
     private string jsonPathProject;
     private string jsonPathPersistent;
     private string binaryPath;
 
     public bool isSavingToJson;
+
+    // Reference to AudioMixerController
+    public AudioMixerController audioMixerController;
 
     private void Awake()
     {
@@ -25,7 +28,7 @@ public class SaveManager : MonoBehaviour
         else
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);  // Ensure SaveManager persists across scenes
+            DontDestroyOnLoad(gameObject);
         }
     }
 
@@ -34,6 +37,15 @@ public class SaveManager : MonoBehaviour
         jsonPathProject = Application.dataPath + Path.AltDirectorySeparatorChar + "SaveGame.json";
         jsonPathPersistent = Application.persistentDataPath + Path.AltDirectorySeparatorChar + "SaveGame.json";
         binaryPath = Application.persistentDataPath + "/save_game.bin";
+
+        LoadAndApplyVolumeSettings();
+
+          if (audioMixerController == null)
+    {
+        audioMixerController = AudioMixerController.Instance;
+    }
+
+    LoadAndApplyVolumeSettings();
     }
 
     #region Save and Load Game Data
@@ -108,6 +120,14 @@ public class SaveManager : MonoBehaviour
         {
             return new VolumeSettings { music = 1.0f, effects = 1.0f, master = 1.0f };
         }
+    }
+
+    public void LoadAndApplyVolumeSettings()
+    {
+        VolumeSettings volumeSettings = LoadVolumeSettings();
+        audioMixerController.SetMasterVolume(volumeSettings.master);
+        audioMixerController.SetMusicVolume(volumeSettings.music);
+        audioMixerController.SetEffectsVolume(volumeSettings.effects);
     }
     #endregion
 }

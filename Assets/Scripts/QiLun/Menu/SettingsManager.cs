@@ -22,9 +22,13 @@ public class SettingsManager : MonoBehaviour
 
     private void Start()
     {
+        // Attach the listeners for the sliders
+        masterSlider.onValueChanged.AddListener(SetMasterVolume);
+        musicSlider.onValueChanged.AddListener(SetMusicVolume);
+        effectsSlider.onValueChanged.AddListener(SetEffectsVolume);
+
         backBTN.onClick.AddListener(() =>
         {
-
             SaveManager.Instance.SaveVolumeSettings(musicSlider.value, effectsSlider.value, masterSlider.value);
         });
 
@@ -35,21 +39,25 @@ public class SettingsManager : MonoBehaviour
     {
         LoadAndSetVolume();
 
-        //Load GraphicsSettings method
-        //Load Key Bindings method
+        // Load other settings methods if needed
 
         yield return new WaitForSeconds(0.1f);
     }
 
     private void LoadAndSetVolume()
     {
-        VolumeSettings volumeSettings =  SaveManager.Instance.LoadVolumeSettings();
+        VolumeSettings volumeSettings = SaveManager.Instance.LoadVolumeSettings();
 
         masterSlider.value = volumeSettings.master;
         musicSlider.value = volumeSettings.music;
         effectsSlider.value = volumeSettings.effects;
 
-        print("Volume Settings are Loaded");
+        // Apply the loaded values to the AudioMixer
+        AudioMixerController.Instance.SetMasterVolume(masterSlider.value);
+        AudioMixerController.Instance.SetMusicVolume(musicSlider.value);
+        AudioMixerController.Instance.SetEffectsVolume(effectsSlider.value);
+
+        print("Volume Settings are Loaded and Applied");
     }
 
     private void Awake()
@@ -66,9 +74,23 @@ public class SettingsManager : MonoBehaviour
 
     private void Update()
     {
-        masterValue.GetComponent<TextMeshProUGUI>().text = "" + (masterSlider.value) + "";
-        musicValue.GetComponent<TextMeshProUGUI>().text = "" + (musicSlider.value) + "";
-        effectsValue.GetComponent<TextMeshProUGUI>().text = "" + (effectsSlider.value) + "";
+        masterValue.GetComponent<TextMeshProUGUI>().text = masterSlider.value.ToString("0.0");
+        musicValue.GetComponent<TextMeshProUGUI>().text = musicSlider.value.ToString("0.0");
+        effectsValue.GetComponent<TextMeshProUGUI>().text = effectsSlider.value.ToString("0.0");
     }
 
+    private void SetMasterVolume(float value)
+    {
+        AudioMixerController.Instance.SetMasterVolume(value);
+    }
+
+    private void SetMusicVolume(float value)
+    {
+        AudioMixerController.Instance.SetMusicVolume(value);
+    }
+
+    private void SetEffectsVolume(float value)
+    {
+        AudioMixerController.Instance.SetEffectsVolume(value);
+    }
 }
