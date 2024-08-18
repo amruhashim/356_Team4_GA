@@ -3,6 +3,7 @@ using UnityEditor;
 #endif
 
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.UI;
@@ -39,6 +40,12 @@ public class PatrolAgent : MonoBehaviour
 
     [Tooltip("Vision angle for detecting the player.")]
     public float visionAngle = 60f;
+
+    [Tooltip("Prefab for the sound waypoint.")]
+    public GameObject soundWaypointPrefab;
+
+    [Tooltip("Range within which the AI can hear sounds.")]
+    public float hearingRange = 15f;
     #endregion
 
     #region Private Fields
@@ -55,8 +62,9 @@ public class PatrolAgent : MonoBehaviour
     private bool isTargetInRange = false;
     private bool isTargetInVisionAngle = false;
 
-
-
+    // Separate list for sound waypoints
+    private List<Transform> soundWaypoints = new List<Transform>();
+    private bool isUsingSoundWaypoints = false;
     #endregion
 
     #region Unity Methods
@@ -71,12 +79,10 @@ public class PatrolAgent : MonoBehaviour
         InitializeHealthBar();
         initialPosition = transform.position;
         MoveToNextWaypoint();
-        stateManager = GetComponent<AIStateManager>();
     }
 
     private void Update()
     {
-        // Only handle patrol logic if the AI is in the Patrolling state
         if (stateManager.currentState == AIStateManager.AIState.Patrolling)
         {
             if (!agent.pathPending && agent.remainingDistance < 0.5f && !isWaiting)
@@ -84,29 +90,27 @@ public class PatrolAgent : MonoBehaviour
                 ReachedWaypoint(agent.transform.position);
             }
 
-            // Detect target while patrolling
             DetectTarget();
 
-            // If the target is detected, switch to Chasing state
             if (isTargetInRange && isTargetInVisionAngle)
             {
                 stateManager.ChangeState(AIStateManager.AIState.Chasing);
             }
 
+            DetectSoundSources();
             UpdateHealthBar();
         }
     }
     #endregion
 
     #region Detection Methods
-    public float minDetectionDistance = 2.0f; // adjust this value as needed
+    public float minDetectionDistance = 2.0f;
 
     private void DetectTarget()
     {
         isTargetInRange = false;
         isTargetInVisionAngle = false;
 
-        // Use OverlapSphere to detect all objects within vision range
         Collider[] hits = Physics.OverlapSphere(transform.position, visionRange);
         foreach (Collider hit in hits)
         {
@@ -120,7 +124,6 @@ public class PatrolAgent : MonoBehaviour
                     float angle = Vector3.Angle(transform.forward, directionToTarget);
                     float distanceToTarget = Vector3.Distance(transform.position, hit.transform.position);
 
-                    // Detect target if within a minimum distance regardless of angle
                     if (distanceToTarget <= minDetectionDistance || angle <= visionAngle / 2f)
                     {
                         isTargetInRange = true;
@@ -129,15 +132,43 @@ public class PatrolAgent : MonoBehaviour
 
                         Debug.Log($"PatrolAgent: Target with tag {tag} detected within range and vision angle.");
                         stateManager.ChangeState(AIStateManager.AIState.Chasing, targetType);
-                        return; // Exit once the correct target is found
+                        return;
                     }
                 }
             }
         }
-
-        //Debug.Log("PatrolAgent: No valid targets found.");
     }
 
+    private void DetectSoundSources()
+    {
+        Collider[] soundHits = Physics.OverlapSphere(transform.position, hearingRange);
+        foreach (Collider hit in soundHits)
+        {
+            SoundSource soundSource = hit.GetComponent<SoundSource>();
+            if (soundSource != null && soundSource.IsPlaying())
+            {
+                CreateSoundWaypoint(soundSource.GetSoundPosition());
+                break;
+            }
+        }
+    }
+
+    private void CreateSoundWaypoint(Vector3 soundPosition)
+    {
+        NavMeshHit hit;
+        if (NavMesh.SamplePosition(soundPosition, out hit, hearingRange, NavMesh.AllAreas))
+        {
+            Vector3 navMeshPosition = hit.position;
+            bool waypointExists = soundWaypoints.Exists(wp => Vector3.Distance(wp.position, navMeshPosition) < 1f);
+
+            if (!waypointExists)
+            {
+                GameObject soundWaypoint = Instantiate(soundWaypointPrefab, navMeshPosition, Quaternion.identity);
+                soundWaypoint.tag = "SoundWaypoint";
+                soundWaypoints.Add(soundWaypoint.transform);
+            }
+        }
+    }
 
     public Transform GetDetectedTarget()
     {
@@ -148,20 +179,45 @@ public class PatrolAgent : MonoBehaviour
     #region Waypoint Methods
     public void MoveToNextWaypoint()
     {
-        if (waypoints.Length == 0)
-            return;
+        // Prioritize sound waypoints if they exist
+        if (soundWaypoints.Count > 0)
+        {
+            isUsingSoundWaypoints = true;
+            agent.SetDestination(soundWaypoints[0].position);
+        }
+        else
+        {
+            isUsingSoundWaypoints = false;
+            agent.SetDestination(waypoints[currentWaypointIndex].position);
+            currentWaypointIndex = (currentWaypointIndex + 1) % waypoints.Length;
+        }
 
-        agent.SetDestination(waypoints[currentWaypointIndex].position);
         animator.SetBool("isWalking", true);
         animator.SetBool("isIdle", false);
-
-        currentWaypointIndex = (currentWaypointIndex + 1) % waypoints.Length;
     }
-
-    public void ReachedWaypoint(Vector3 collisionPosition)
+public void ReachedWaypoint(Vector3 collisionPosition)
+{
+    if (isUsingSoundWaypoints)
     {
+        // Remove the sound waypoint and continue patrolling without waiting
+        Destroy(soundWaypoints[0].gameObject);
+        soundWaypoints.RemoveAt(0);
+
+        if (soundWaypoints.Count == 0)
+        {
+            currentWaypointIndex = 0; // Reset index for normal waypoints
+        }
+
+        // Directly move to the next waypoint without waiting
+        MoveToNextWaypoint();
+    }
+    else
+    {
+        // Normal waypoint logic with idle time
         StartCoroutine(IdleAtPoint(collisionPosition));
     }
+}
+
 
     private IEnumerator IdleAtPoint(Vector3 collisionPosition)
     {
@@ -243,7 +299,7 @@ public class PatrolAgent : MonoBehaviour
     private void RespawnAgent()
     {
         agent.isStopped = false;
-        stateManager.ChangeState(AIStateManager.AIState.Patrolling); // Set state back to patrolling
+        stateManager.ChangeState(AIStateManager.AIState.Patrolling); 
         MoveToNextWaypoint();
     }
 
@@ -270,6 +326,7 @@ public class PatrolAgent : MonoBehaviour
 
         healthBarCanvas.Rotate(0, 0, 0);
     }
+    #endregion
 
 
 #if UNITY_EDITOR
@@ -325,6 +382,42 @@ public class PatrolAgent : MonoBehaviour
         // Draw labels for the state and vision range
         DrawLabelWithBackground(transform.position + Vector3.up * 2, $"State: {stateManager?.currentState ?? AIStateManager.AIState.Patrolling}", labelStyle, backgroundColor);
         DrawLabelWithBackground(transform.position + forward.normalized * visionRange, $"Vision Range: {visionRange}m", labelStyle, backgroundColor);
+
+        // Visualize the hearing range
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, hearingRange);
+        DrawLabelWithBackground(transform.position + Vector3.up * (hearingRange + 1f), "Hearing Range", labelStyle, backgroundColor);
+
+        // Visualize all waypoints and the travel path
+        Gizmos.color = Color.blue;
+        Vector3 previousPosition = transform.position;
+        for (int i = 0; i < waypoints.Length; i++)
+        {
+            Transform waypoint = waypoints[i];
+
+            if (waypoint == null) continue;
+
+            Gizmos.color = Color.blue; // Normal waypoints are blue
+            Gizmos.DrawSphere(waypoint.position, 0.5f);
+            DrawLabelWithBackground(waypoint.position + Vector3.up * 1.5f, $"Waypoint {i + 1}", labelStyle, backgroundColor);
+
+            Gizmos.DrawLine(previousPosition, waypoint.position);
+            previousPosition = waypoint.position;
+        }
+
+        // Visualize sound waypoints and the travel path
+        Gizmos.color = Color.green; // Sound waypoints are green
+        foreach (Transform soundWaypoint in soundWaypoints)
+        {
+            Gizmos.DrawSphere(soundWaypoint.position, 0.5f);
+            DrawLabelWithBackground(soundWaypoint.position + Vector3.up * 1.5f, "Sound Waypoint", labelStyle, backgroundColor);
+
+            Gizmos.DrawLine(previousPosition, soundWaypoint.position);
+            previousPosition = soundWaypoint.position;
+        }
+
+        // Close the path if looping back to the initial waypoint
+        Gizmos.DrawLine(previousPosition, waypoints[currentWaypointIndex].position);
     }
 
     private void DrawLabelWithBackground(Vector3 position, string text, GUIStyle style, Color backgroundColor)
@@ -349,5 +442,4 @@ public class PatrolAgent : MonoBehaviour
 
 
 
-    #endregion
 }
