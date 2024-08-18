@@ -59,8 +59,16 @@ public class MenuManager : MonoBehaviour
         }
     }
 
-    public void TempSaveGame()
+public void TempSaveGame()
+{
+    if (SaveManager.Instance != null)
     {
         SaveManager.Instance.SaveGame();
     }
+    else
+    {
+        Debug.LogError("SaveManager instance is null. Make sure SaveManager is initialized.");
+    }
+}
+
 }

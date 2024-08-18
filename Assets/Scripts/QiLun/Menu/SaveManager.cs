@@ -25,7 +25,7 @@ public class SaveManager : MonoBehaviour
         else
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject);
+            DontDestroyOnLoad(gameObject);  // Ensure SaveManager persists across scenes
         }
     }
 
@@ -44,43 +44,33 @@ public class SaveManager : MonoBehaviour
     }
 
     public void StartLoadedGame(string sceneName)
-{
-    SceneManager.sceneLoaded += OnSceneLoaded; // Subscribe to scene loaded event
-    SceneManager.LoadScene(sceneName);
-}
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded; // Subscribe to scene loaded event
+        SceneManager.LoadScene(sceneName);
+    }
 
-private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-{
-    PlayerState.Instance.LoadPlayerData();
-    SceneManager.sceneLoaded -= OnSceneLoaded; // Unsubscribe to avoid memory leaks
-}
-
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        PlayerState.Instance.LoadPlayerData();
+        SceneManager.sceneLoaded -= OnSceneLoaded; // Unsubscribe to avoid memory leaks
+    }
 
     public void StartNewGame(string sceneName)
     {
-        // Clear saved player data to start fresh
         PlayerPrefs.DeleteAll(); // Clear all PlayerPrefs, or selectively delete specific keys if needed
-
-        // Load the new scene
         SceneManager.LoadScene(sceneName);
-
-        // Initialize new player data after the scene loads
         StartCoroutine(DelayedNewGame());
     }
 
     private IEnumerator DelayedLoading()
     {
         yield return new WaitForSeconds(0.5f);
-
-        // Ensure the player starts at the correct saved point
         PlayerState.Instance.LoadPlayerData();
     }
 
     private IEnumerator DelayedNewGame()
     {
         yield return new WaitForSeconds(0.5f);
-
-        // Ensure the player starts at the correct spawn point after the scene loads
         PlayerState.Instance.InitializeNewPlayerData();
     }
     #endregion
