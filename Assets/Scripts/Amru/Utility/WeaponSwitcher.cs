@@ -130,7 +130,7 @@ public class WeaponSwitcher : MonoBehaviour
         }
     }
 
-private void SwitchWeapon(GameObject weaponPrefab, bool isLoadingGame = false)
+    private void SwitchWeapon(GameObject weaponPrefab, bool isLoadingGame = false)
 {
     if (currentWeapon != null)
     {
@@ -168,39 +168,51 @@ private void SwitchWeapon(GameObject weaponPrefab, bool isLoadingGame = false)
 
     // Ensure AmmoManager references the new weapon
     AmmoManager.Instance.UpdateAmmoDisplay(currentWeapon);
-    AmmoManager.Instance.throwForceSlider.gameObject.SetActive(false);
+    
+    // Show the ammo display and hide the grenade display
     AmmoManager.Instance.ammoDisplay.gameObject.SetActive(true);
+    AmmoManager.Instance.throwForceSlider.gameObject.SetActive(false);
+    AmmoManager.Instance.grenadeDisplay.gameObject.SetActive(false);
+}
+
+private void SwitchToGrenadeHand()
+{
+    if (currentWeapon != null)
+    {
+        currentWeapon.gameObject.SetActive(false);
+    }
+
+    grenadeHandInstance.SetActive(true);
+    isGrenadeActive = true;
+
+    // Hide the ammo display and show the grenade display
+    AmmoManager.Instance.ammoDisplay.gameObject.SetActive(false);
+    AmmoManager.Instance.throwForceSlider.gameObject.SetActive(true); // Show the throw force slider
+    AmmoManager.Instance.grenadeDisplay.gameObject.SetActive(true);
+    AmmoManager.Instance.UpdateGrenadeDisplay(PlayerState.Instance.grenadeCount);
 }
 
 
-
-    private void SwitchToGrenadeHand()
+private void SwitchToCurrentWeapon()
+{
+    if (grenadeHandInstance != null)
     {
-        if (currentWeapon != null)
-        {
-            currentWeapon.gameObject.SetActive(false);
-        }
-
-        grenadeHandInstance.SetActive(true);
-        isGrenadeActive = true;
-        AmmoManager.Instance.ammoDisplay.gameObject.SetActive(false);
+        grenadeHandInstance.SetActive(false);
     }
 
-    private void SwitchToCurrentWeapon()
+    if (currentWeapon != null)
     {
-        if (grenadeHandInstance != null)
-        {
-            grenadeHandInstance.SetActive(false);
-        }
-
-        if (currentWeapon != null)
-        {
-            currentWeapon.gameObject.SetActive(true);
-        }
-
-        isGrenadeActive = false;
-        AmmoManager.Instance.ammoDisplay.gameObject.SetActive(true);
+        currentWeapon.gameObject.SetActive(true);
     }
+
+    isGrenadeActive = false;
+
+    // Show the ammo display and hide the grenade display
+    AmmoManager.Instance.ammoDisplay.gameObject.SetActive(true);
+    AmmoManager.Instance.throwForceSlider.gameObject.SetActive(false); // Hide the throw force slider
+    AmmoManager.Instance.grenadeDisplay.gameObject.SetActive(false);
+    AmmoManager.Instance.UpdateGrenadeDisplay(PlayerState.Instance.grenadeCount);
+}
 
     private void ToggleDrone()
     {

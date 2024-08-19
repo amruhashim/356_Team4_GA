@@ -4,26 +4,40 @@ public class Ammo : MonoBehaviour
 {
     public string weaponID; 
     public int ammoAmount = 10;
+    public bool isGrenade = false;  // Flag to indicate if this ammo is for grenades
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
         {
-            WeaponSwitcher weaponSwitcher = other.GetComponentInChildren<WeaponSwitcher>();
-            if (weaponSwitcher != null && weaponSwitcher.currentWeapon != null)
+            if (isGrenade)
             {
-                Weapon currentWeapon = weaponSwitcher.currentWeapon;
-
-                // Ensure the ammo is collected only if the weaponID matches
-                if (currentWeapon.weaponID == weaponID)
+                // Handle grenade inventory
+                GrenadeManager grenadeManager = other.GetComponentInChildren<GrenadeManager>();
+                if (grenadeManager != null)
                 {
-                    currentWeapon.CollectAmmo(ammoAmount);
+                    grenadeManager.AddGrenades(ammoAmount);
                     Destroy(gameObject); // Destroy the ammo object after collection
                 }
-                else
-
+            }
+            else
+            {
+                // Handle regular weapon ammo
+                WeaponSwitcher weaponSwitcher = other.GetComponentInChildren<WeaponSwitcher>();
+                if (weaponSwitcher != null && weaponSwitcher.currentWeapon != null)
                 {
-                    Debug.LogWarning($"Ammo for weaponID {weaponID} does not match the current weaponID {currentWeapon.weaponID}.");
+                    Weapon currentWeapon = weaponSwitcher.currentWeapon;
+
+                    // Ensure the ammo is collected only if the weaponID matches
+                    if (currentWeapon.weaponID == weaponID)
+                    {
+                        currentWeapon.CollectAmmo(ammoAmount);
+                        Destroy(gameObject); // Destroy the ammo object after collection
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"Ammo for weaponID {weaponID} does not match the current weaponID {currentWeapon.weaponID}.");
+                    }
                 }
             }
         }

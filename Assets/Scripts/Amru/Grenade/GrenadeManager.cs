@@ -8,29 +8,39 @@ public class GrenadeManager : MonoBehaviour
     [SerializeField] private float forceMultiplier = 1f;
     [SerializeField] private GameObject grenadePrefab;
     [SerializeField] private Transform throwableSpawn;
-    [SerializeField] public float maxChargeTime = 6.0f; // Max time to charge the grenade
-    [SerializeField] private float chargeSpeedMultiplier = 2.0f; // Multiplier to increase charge speed
-    [SerializeField] private float sliderResetDuration = 0.5f; // Time to reset slider to zero
+    [SerializeField] public float maxChargeTime = 6.0f;
+    [SerializeField] private float chargeSpeedMultiplier = 2.0f;
+    [SerializeField] private float sliderResetDuration = 0.5f;
+    [SerializeField] public int maxGrenades = 5;
 
     private float throwForce = 0f;
     private float chargeTime = 0f;
     private bool isCharging = false;
-    private bool canThrow = true;  // Flag to prevent charging another grenade until animation finishes
+    private bool canThrow = true;
     private Animator animator;
+    private int currentGrenades;
+
+    public int MaxGrenades
+    {
+        get { return maxGrenades; }
+    }
 
     void Start()
     {
         animator = GetComponent<Animator>();
         AmmoManager.Instance.throwForceSlider.gameObject.SetActive(false);
+        currentGrenades = PlayerState.Instance.grenadeCount;
+
+        // Update the grenade display at the start
+        AmmoManager.Instance.UpdateGrenadeDisplay(currentGrenades);
     }
 
     void Update()
     {
-        // Ensure the grenade only reacts to input when the cursor is locked
         if (Cursor.lockState != CursorLockMode.Locked)
             return;
 
-        if (Input.GetMouseButtonDown(0) && canThrow)
+        if (Input.GetMouseButtonDown(0) && canThrow && currentGrenades > 0)
         {
             StartCharging();
         }
@@ -70,10 +80,10 @@ public class GrenadeManager : MonoBehaviour
         isCharging = false;
         StartCoroutine(SmoothSliderReset());
 
-        if (chargeTime >= 1.0f) // Only throw if charge time is greater than one second
+        if (chargeTime >= 1.0f)
         {
             canThrow = false;
-            animator.SetBool("isThrowing", true);  // Trigger the throwing animation
+            animator.SetBool("isThrowing", true);
         }
     }
 
@@ -97,8 +107,15 @@ public class GrenadeManager : MonoBehaviour
 
     public void OnThrowAnimationEnd()
     {
-        canThrow = true;  // Reset the flag when the animation ends
-        animator.SetBool("isThrowing", false);  // Reset the animation state
+        canThrow = true;
+        animator.SetBool("isThrowing", false);
+        currentGrenades--;
+
+        PlayerState.Instance.grenadeCount = currentGrenades;
+        PlayerState.Instance.SavePlayerData();
+
+        // Update the grenade display when a grenade is used
+        AmmoManager.Instance.UpdateGrenadeDisplay(currentGrenades);
     }
 
     void LaunchGrenade(float delayTime)
@@ -107,7 +124,24 @@ public class GrenadeManager : MonoBehaviour
         Rigidbody grenadeRb = grenade.GetComponent<Rigidbody>();
         grenadeRb.AddForce(Camera.main.transform.forward * (throwForce * forceMultiplier), ForceMode.Impulse);
         Grenade grenadeScript = grenade.GetComponent<Grenade>();
-        grenadeScript.SetInitialBounceForce(throwForce); // Set the initial bounce force based on throw force
+        grenadeScript.SetInitialBounceForce(throwForce);
         grenadeScript.DelayedExplosion(delayTime);
+    }
+
+    public void AddGrenades(int amount)
+    {
+        currentGrenades = Mathf.Min(currentGrenades + amount, maxGrenades);
+        PlayerState.Instance.grenadeCount = currentGrenades;
+        PlayerState.Instance.SavePlayerData();
+
+        // Update the grenade display when grenades are added
+        AmmoManager.Instance.UpdateGrenadeDisplay(currentGrenades);
+
+        Debug.Log($"Grenades added: {amount}. Total grenades: {currentGrenades}");
+    }
+
+    public int GetCurrentGrenades()
+    {
+        return currentGrenades;
     }
 }

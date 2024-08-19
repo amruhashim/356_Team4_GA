@@ -12,6 +12,7 @@ public class PlayerState : MonoBehaviour
     public string activeWeaponID;  // Store the current weapon's ID
     public int bulletsLeft;        // Store bullets left for the active weapon
     public int accumulatedBullets; // Store accumulated bullets for the active weapon
+    public int grenadeCount;       // Store current grenade count
 
     private void Awake()
     {
@@ -65,8 +66,58 @@ public class PlayerState : MonoBehaviour
             PlayerPrefs.SetInt("accumulatedBullets", accumulatedBullets); // Save accumulated bullets for the active weapon
         }
 
+        // Save grenade count
+        PlayerPrefs.SetInt("grenadeCount", grenadeCount);
+
         PlayerPrefs.Save();
         Debug.Log("Player data saved.");
+    }
+
+    public void LoadPlayerData()
+    {
+        if (PlayerPrefs.HasKey("playerStarted"))
+        {
+            currentHealth = PlayerPrefs.GetFloat("currentHealth", maxHealth);
+            Debug.Log($"Loaded Current Health: {currentHealth}");
+
+            // Load position and rotation from PlayerPrefs
+            playerTransform.position = new Vector3(
+                PlayerPrefs.GetFloat("playerPositionX"),
+                PlayerPrefs.GetFloat("playerPositionY"),
+                PlayerPrefs.GetFloat("playerPositionZ")
+            );
+            playerTransform.rotation = Quaternion.Euler(
+                PlayerPrefs.GetFloat("playerRotationX"),
+                PlayerPrefs.GetFloat("playerRotationY"),
+                PlayerPrefs.GetFloat("playerRotationZ")
+            );
+
+            // Load active weapon ID if available
+            if (PlayerPrefs.HasKey("activeWeaponID"))
+            {
+                activeWeaponID = PlayerPrefs.GetString("activeWeaponID");
+                Debug.Log($"Loaded Active Weapon ID: {activeWeaponID}");
+
+                // Load bullets left and accumulated bullets for the active weapon
+                bulletsLeft = PlayerPrefs.GetInt("bulletsLeft", 0);
+                accumulatedBullets = PlayerPrefs.GetInt("accumulatedBullets", 0);
+            }
+            else
+            {
+                activeWeaponID = null;
+                bulletsLeft = 0;
+                accumulatedBullets = 0;
+            }
+
+            // Load grenade count
+            grenadeCount = PlayerPrefs.GetInt("grenadeCount", 0);
+            Debug.Log($"Loaded Grenade Count: {grenadeCount}");
+        }
+        else
+        {
+            // For a new game, initialize data instead of loading
+            InitializeNewPlayerData();
+        }
     }
 
     public void InitializeNewPlayerData()
@@ -78,6 +129,8 @@ public class PlayerState : MonoBehaviour
         playerTransform.rotation = Quaternion.identity;
 
         activeWeaponID = null; // No active weapon for a new player
+
+        grenadeCount = 0; // Start with zero grenades
 
         // Notify all weapons to reset their bullets to default values
         Weapon[] weapons = FindObjectsOfType<Weapon>();
@@ -94,50 +147,6 @@ public class PlayerState : MonoBehaviour
 
         Debug.Log("New player data initialized");
     }
-
-public void LoadPlayerData()
-{
-    if (PlayerPrefs.HasKey("playerStarted"))
-    {
-        currentHealth = PlayerPrefs.GetFloat("currentHealth", maxHealth);
-        Debug.Log($"Loaded Current Health: {currentHealth}");
-
-        // Load position and rotation from PlayerPrefs
-        playerTransform.position = new Vector3(
-            PlayerPrefs.GetFloat("playerPositionX"),
-            PlayerPrefs.GetFloat("playerPositionY"),
-            PlayerPrefs.GetFloat("playerPositionZ")
-        );
-        playerTransform.rotation = Quaternion.Euler(
-            PlayerPrefs.GetFloat("playerRotationX"),
-            PlayerPrefs.GetFloat("playerRotationY"),
-            PlayerPrefs.GetFloat("playerRotationZ")
-        );
-
-        // Load active weapon ID if available
-        if (PlayerPrefs.HasKey("activeWeaponID"))
-        {
-            activeWeaponID = PlayerPrefs.GetString("activeWeaponID");
-            Debug.Log($"Loaded Active Weapon ID: {activeWeaponID}");
-
-            // Load bullets left and accumulated bullets for the active weapon
-            bulletsLeft = PlayerPrefs.GetInt("bulletsLeft", 0);
-            accumulatedBullets = PlayerPrefs.GetInt("accumulatedBullets", 0);
-        }
-        else
-        {
-            activeWeaponID = null;
-            bulletsLeft = 0;
-            accumulatedBullets = 0;
-        }
-    }
-    else
-    {
-        // For a new game, initialize data instead of loading
-        InitializeNewPlayerData();
-    }
-}
-
 
     // Method to check if it's a new game
     public bool IsNewGame()
