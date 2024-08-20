@@ -19,6 +19,7 @@ public class WeaponSwitcher : MonoBehaviour
     public CinemachineVirtualCamera droneCamera;
     public Movement playerMovement;
     public Camera mainCamera;
+    public float droneSwitchBackDistance = 50f; // Max distance for the drone
 
     private GameObject droneInstance;
     private bool isGrenadeActive = false;
@@ -74,6 +75,11 @@ public class WeaponSwitcher : MonoBehaviour
     private void Update()
     {
         HandleInput();
+        if (isDroneActive)
+        {
+            CheckDroneRaycastDetection();
+            CheckDroneDistance();
+        }
     }
 
     private void HandleInput()
@@ -260,6 +266,53 @@ public class WeaponSwitcher : MonoBehaviour
             isDroneActive = true;
         }
     }
+
+    private void CheckDroneRaycastDetection()
+    {
+        if (droneInstance != null)
+        {
+            RaycastHit hit;
+            Vector3 directionToPlayer = (playerCamera.transform.position - droneInstance.transform.position).normalized;
+
+            if (Physics.Raycast(droneInstance.transform.position, directionToPlayer, out hit, Mathf.Infinity))
+            {
+                if (hit.collider.CompareTag("Player"))
+                {
+                    Debug.Log("Player detected by drone");
+                    // Perform any action you want when the player is detected
+                }
+                else
+                {
+                    Debug.Log("Obstacle detected, but drone remains active");
+                    // Perform any action you want when an obstacle is detected,
+                    // but do not switch back to the weapon.
+                }
+            }
+        }
+    }
+
+    private void CheckDroneDistance()
+    {
+        if (droneInstance != null)
+        {
+            float distance = Vector3.Distance(droneInstance.transform.position, playerCamera.transform.position);
+            if (distance > droneSwitchBackDistance)
+            {
+                ToggleDrone(); // Switch back to weapon if drone goes out of range
+            }
+        }
+    }
+
+#if UNITY_EDITOR
+    private void OnDrawGizmosSelected()
+    {
+        if (isDroneActive && droneInstance != null)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(droneInstance.transform.position, droneSwitchBackDistance);
+        }
+    }
+#endif
 
     public void SwitchWeaponByID(string weaponID, bool isLoadingGame = false)
     {
