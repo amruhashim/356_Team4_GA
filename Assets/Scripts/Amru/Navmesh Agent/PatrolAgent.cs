@@ -9,15 +9,14 @@ using UnityEngine.AI;
 using UnityEngine.UI;
 
 public class PatrolAgent : MonoBehaviour
-{ 
+{
     #region Serialized Fields
     [Tooltip("Unique ID for this AI.")]
-    public string uniqueID;  // A
+    public string uniqueID;
 
     [Tooltip("Spawn points for the AI.")]
-public Transform[] spawnPoints;  // Add this field
+    public Transform[] spawnPoints;
 
-    
     [Tooltip("Reference to the health bar Slider.")]
     public Slider healthBar;
 
@@ -68,48 +67,44 @@ public Transform[] spawnPoints;  // Add this field
     private Transform detectedTarget;
     private bool isTargetInRange = false;
     private bool isTargetInVisionAngle = false;
-
-    // Separate list for sound waypoints
     private List<Transform> soundWaypoints = new List<Transform>();
     private bool isUsingSoundWaypoints = false;
     #endregion
 
     #region Unity Methods
-private void Start()
-{
-    if (PlayerState.Instance != null && PlayerState.Instance.IsAIDead(uniqueID))
+    private void Start()
     {
-        Debug.Log($"[Start] PatrolAgent {uniqueID} is dead. Deactivating.");
-        gameObject.SetActive(false); // Deactivate the AI if it is dead
-        return;
+        if (PlayerState.Instance != null && PlayerState.Instance.IsAIDead(uniqueID))
+        {
+            Debug.Log($"[Start] PatrolAgent {uniqueID} is dead. Deactivating.");
+            gameObject.SetActive(false); // Deactivate the AI if it is dead
+            return;
+        }
+
+        Debug.Log($"[Start] PatrolAgent {uniqueID} is alive. Initializing.");
+
+        agent = GetComponent<NavMeshAgent>();
+        animator = GetComponent<Animator>();
+        audioSource = GetComponent<AudioSource>();
+        healthBarBackground = healthBar.transform.Find("Background").GetComponent<Image>();
+        stateManager = GetComponent<AIStateManager>();
+
+        InitializeHealthBar();
+
+        // Use the first waypoint as the initial spawn point
+        if (waypoints.Length > 0)
+        {
+            initialPosition = waypoints[0].position;
+            agent.Warp(initialPosition);
+        }
+        else
+        {
+            Debug.LogWarning("No waypoints assigned. Using current position as the spawn point.");
+            initialPosition = transform.position;
+        }
+
+        MoveToNextWaypoint();
     }
-
-    Debug.Log($"[Start] PatrolAgent {uniqueID} is alive. Initializing.");
-
-    agent = GetComponent<NavMeshAgent>();
-    animator = GetComponent<Animator>();
-    audioSource = GetComponent<AudioSource>();
-    healthBarBackground = healthBar.transform.Find("Background").GetComponent<Image>();
-    stateManager = GetComponent<AIStateManager>();
-
-    InitializeHealthBar();
-
-    // Use the first waypoint as the initial spawn point
-    if (waypoints.Length > 0)
-    {
-        initialPosition = waypoints[0].position;
-        agent.Warp(initialPosition);
-    }
-    else
-    {
-        Debug.LogWarning("No waypoints assigned. Using current position as the spawn point.");
-        initialPosition = transform.position;
-    }
-
-    MoveToNextWaypoint();
-}
-
-
 
     private void Update()
     {
@@ -225,29 +220,29 @@ private void Start()
         animator.SetBool("isWalking", true);
         animator.SetBool("isIdle", false);
     }
-public void ReachedWaypoint(Vector3 collisionPosition)
-{
-    if (isUsingSoundWaypoints)
-    {
-        // Remove the sound waypoint and continue patrolling without waiting
-        Destroy(soundWaypoints[0].gameObject);
-        soundWaypoints.RemoveAt(0);
 
-        if (soundWaypoints.Count == 0)
+    public void ReachedWaypoint(Vector3 collisionPosition)
+    {
+        if (isUsingSoundWaypoints)
         {
-            currentWaypointIndex = 0; // Reset index for normal waypoints
+            // Remove the sound waypoint and continue patrolling without waiting
+            Destroy(soundWaypoints[0].gameObject);
+            soundWaypoints.RemoveAt(0);
+
+            if (soundWaypoints.Count == 0)
+            {
+                currentWaypointIndex = 0; // Reset index for normal waypoints
+            }
+
+            // Directly move to the next waypoint without waiting
+            MoveToNextWaypoint();
         }
-
-        // Directly move to the next waypoint without waiting
-        MoveToNextWaypoint();
+        else
+        {
+            // Normal waypoint logic with idle time
+            StartCoroutine(IdleAtPoint(collisionPosition));
+        }
     }
-    else
-    {
-        // Normal waypoint logic with idle time
-        StartCoroutine(IdleAtPoint(collisionPosition));
-    }
-}
-
 
     private IEnumerator IdleAtPoint(Vector3 collisionPosition)
     {
@@ -278,6 +273,8 @@ public void ReachedWaypoint(Vector3 collisionPosition)
         else
         {
             UpdateHealthBar();
+            // Update AI state in PlayerState with the current health
+            PlayerState.Instance?.UpdateAIState(uniqueID, false, maxHits - hitCount);
         }
     }
 
@@ -291,6 +288,8 @@ public void ReachedWaypoint(Vector3 collisionPosition)
         else
         {
             UpdateHealthBar();
+            // Update AI state in PlayerState with the current health
+            PlayerState.Instance?.UpdateAIState(uniqueID, false, maxHits - hitCount);
         }
         healthBarBackground.color = GetRandomColorExcludingRedAndGreen();
     }
@@ -306,60 +305,63 @@ public void ReachedWaypoint(Vector3 collisionPosition)
         return randomColor;
     }
 
-private void HandleDeath()
-{
-    Debug.Log($"[HandleDeath] PatrolAgent {uniqueID} has died.");
-    StopAllCoroutines();
-    agent.isStopped = true;
-    animator.SetBool("isWalking", false);
-    animator.Rebind();
-    audioSource.PlayOneShot(deathSound);
-
-    // Mark this AI as dead in PlayerState
-    PlayerState.Instance?.UpdateAIState(uniqueID, true);
-    Debug.Log($"[HandleDeath] PatrolAgent {uniqueID} state updated in PlayerState.");
-
-    healthBarBackground.color = Color.red;
-    UpdateHealthBar();
-
-    gameObject.SetActive(false); // Deactivate the AI immediately without delay
-}
-
-
-
-// RespawnAgent method checks if the AI should respawn
-private void RespawnAgent()
-{
-    if (PlayerState.Instance != null && !PlayerState.Instance.IsAIDead(uniqueID))
+    private void HandleDeath()
     {
-        agent.isStopped = false;
-        stateManager.ChangeState(AIStateManager.AIState.Patrolling);
-        MoveToNextWaypoint();
+        Debug.Log($"[HandleDeath] PatrolAgent {uniqueID} has died.");
+        StopAllCoroutines();
+        agent.isStopped = true;
+        animator.SetBool("isWalking", false);
+        animator.Rebind();
+        audioSource.PlayOneShot(deathSound);
+
+        // Mark this AI as dead in PlayerState with health 0
+        PlayerState.Instance?.UpdateAIState(uniqueID, true, 0);
+        Debug.Log($"[HandleDeath] PatrolAgent {uniqueID} state updated in PlayerState.");
+
+        healthBarBackground.color = Color.red;
+        UpdateHealthBar();
+
+        gameObject.SetActive(false); // Deactivate the AI immediately without delay
     }
-    else
+
+    public void ResetHealth(float health)
     {
-        gameObject.SetActive(false); // Deactivate the AI if it should not respawn
+        hitCount = Mathf.CeilToInt(maxHits - health);
+        UpdateHealthBar();
     }
-}
 
-
-
-public void ResetAgentPosition()
-{
-    if (agent == null)
+    private void RespawnAgent()
     {
-        agent = GetComponent<NavMeshAgent>();
-        if (agent == null)
+        if (PlayerState.Instance != null && !PlayerState.Instance.IsAIDead(uniqueID))
         {
-            Debug.LogError("NavMeshAgent component is missing!");
-            return;
+            // Get the saved health value from PlayerState
+            float savedHealth = PlayerState.Instance.GetAIHealth(uniqueID);
+            ResetHealth(savedHealth);
+
+            agent.isStopped = false;
+            stateManager.ChangeState(AIStateManager.AIState.Patrolling);
+            MoveToNextWaypoint();
+        }
+        else
+        {
+            gameObject.SetActive(false); // Deactivate the AI if it should not respawn
         }
     }
 
-    agent.Warp(initialPosition);
-}
+    public void ResetAgentPosition()
+    {
+        if (agent == null)
+        {
+            agent = GetComponent<NavMeshAgent>();
+            if (agent == null)
+            {
+                Debug.LogError("NavMeshAgent component is missing!");
+                return;
+            }
+        }
 
-
+        agent.Warp(initialPosition);
+    }
 
     private void InitializeHealthBar()
     {

@@ -14,7 +14,20 @@ public class PlayerState : MonoBehaviour
     public int accumulatedBullets;
     public int grenadeCount;
 
-    private Dictionary<string, bool> aiAgentStates = new Dictionary<string, bool>();
+    // Struct to hold AI state data
+    private struct AIStateData
+    {
+        public bool isDead;
+        public float health;
+
+        public AIStateData(bool isDead, float health)
+        {
+            this.isDead = isDead;
+            this.health = health;
+        }
+    }
+
+    private Dictionary<string, AIStateData> aiAgentStates = new Dictionary<string, AIStateData>();
 
     public Vector3 initialSpawnPoint = new Vector3(0, 1, 0);
     public Quaternion initialRotation = Quaternion.identity;
@@ -48,93 +61,93 @@ public class PlayerState : MonoBehaviour
         }
     }
 
-   public void SavePlayerData()
-{
-    PlayerPrefs.SetFloat("currentHealth", currentHealth);
-    PlayerPrefs.SetFloat("playerPositionX", playerTransform.position.x);
-    PlayerPrefs.SetFloat("playerPositionY", playerTransform.position.y);
-    PlayerPrefs.SetFloat("playerPositionZ", playerTransform.position.z);
-    PlayerPrefs.SetFloat("playerRotationX", playerTransform.rotation.eulerAngles.x);
-    PlayerPrefs.SetFloat("playerRotationY", playerTransform.rotation.eulerAngles.y);
-    PlayerPrefs.SetFloat("playerRotationZ", playerTransform.rotation.eulerAngles.z);
-
-    if (!string.IsNullOrEmpty(activeWeaponID))
+    public void SavePlayerData()
     {
-        PlayerPrefs.SetString("activeWeaponID", activeWeaponID);
-        PlayerPrefs.SetInt("bulletsLeft", bulletsLeft);
-        PlayerPrefs.SetInt("accumulatedBullets", accumulatedBullets);
+        PlayerPrefs.SetFloat("currentHealth", currentHealth);
+        PlayerPrefs.SetFloat("playerPositionX", playerTransform.position.x);
+        PlayerPrefs.SetFloat("playerPositionY", playerTransform.position.y);
+        PlayerPrefs.SetFloat("playerPositionZ", playerTransform.position.z);
+        PlayerPrefs.SetFloat("playerRotationX", playerTransform.rotation.eulerAngles.x);
+        PlayerPrefs.SetFloat("playerRotationY", playerTransform.rotation.eulerAngles.y);
+        PlayerPrefs.SetFloat("playerRotationZ", playerTransform.rotation.eulerAngles.z);
+
+        if (!string.IsNullOrEmpty(activeWeaponID))
+        {
+            PlayerPrefs.SetString("activeWeaponID", activeWeaponID);
+            PlayerPrefs.SetInt("bulletsLeft", bulletsLeft);
+            PlayerPrefs.SetInt("accumulatedBullets", accumulatedBullets);
+        }
+
+        PlayerPrefs.SetInt("grenadeCount", grenadeCount);
+
+        // Save AI states with health levels
+        foreach (var kvp in aiAgentStates)
+        {
+            PlayerPrefs.SetInt(kvp.Key + "_isDead", kvp.Value.isDead ? 1 : 0);
+            PlayerPrefs.SetFloat(kvp.Key + "_health", kvp.Value.health);
+        }
+
+        PlayerPrefs.Save();
     }
-
-    PlayerPrefs.SetInt("grenadeCount", grenadeCount);
-
-    // Print and save AI states
-    Debug.Log("Saving AI States:");
-    foreach (var kvp in aiAgentStates)
-    {
-        Debug.Log($"AI ID: {kvp.Key}, Is Dead: {kvp.Value}");
-        PlayerPrefs.SetInt(kvp.Key, kvp.Value ? 1 : 0);
-    }
-
-    PlayerPrefs.Save();
-}
-
 
     public void LoadPlayerData()
-{
-    if (PlayerPrefs.HasKey("playerStarted"))
     {
-        currentHealth = PlayerPrefs.GetFloat("currentHealth", maxHealth);
-
-        playerTransform.position = new Vector3(
-            PlayerPrefs.GetFloat("playerPositionX"),
-            PlayerPrefs.GetFloat("playerPositionY"),
-            PlayerPrefs.GetFloat("playerPositionZ")
-        );
-        playerTransform.rotation = Quaternion.Euler(
-            PlayerPrefs.GetFloat("playerRotationX"),
-            PlayerPrefs.GetFloat("playerRotationY"),
-            PlayerPrefs.GetFloat("playerRotationZ")
-        );
-
-        if (PlayerPrefs.HasKey("activeWeaponID"))
+        if (PlayerPrefs.HasKey("playerStarted"))
         {
-            activeWeaponID = PlayerPrefs.GetString("activeWeaponID");
-            bulletsLeft = PlayerPrefs.GetInt("bulletsLeft", 0);
-            accumulatedBullets = PlayerPrefs.GetInt("accumulatedBullets", 0);
+            currentHealth = PlayerPrefs.GetFloat("currentHealth", maxHealth);
+
+            playerTransform.position = new Vector3(
+                PlayerPrefs.GetFloat("playerPositionX"),
+                PlayerPrefs.GetFloat("playerPositionY"),
+                PlayerPrefs.GetFloat("playerPositionZ")
+            );
+            playerTransform.rotation = Quaternion.Euler(
+                PlayerPrefs.GetFloat("playerRotationX"),
+                PlayerPrefs.GetFloat("playerRotationY"),
+                PlayerPrefs.GetFloat("playerRotationZ")
+            );
+
+            if (PlayerPrefs.HasKey("activeWeaponID"))
+            {
+                activeWeaponID = PlayerPrefs.GetString("activeWeaponID");
+                bulletsLeft = PlayerPrefs.GetInt("bulletsLeft", 0);
+                accumulatedBullets = PlayerPrefs.GetInt("accumulatedBullets", 0);
+            }
+            else
+            {
+                activeWeaponID = null;
+                bulletsLeft = 0;
+                accumulatedBullets = 0;
+            }
+
+            grenadeCount = PlayerPrefs.GetInt("grenadeCount", 0);
+
+            // Load AI states with health levels
+            PatrolAgent[] patrolAgents = FindObjectsOfType<PatrolAgent>();
+            aiAgentStates.Clear();
+            foreach (var agent in patrolAgents)
+            {
+                string aiID = agent.uniqueID;
+                bool isDead = PlayerPrefs.GetInt(aiID + "_isDead", 0) == 1;
+                float health = PlayerPrefs.GetFloat(aiID + "_health", agent.maxHits);
+
+                aiAgentStates[aiID] = new AIStateData(isDead, health);
+
+                if (isDead)
+                {
+                    agent.gameObject.SetActive(false);
+                }
+                else
+                {
+                    agent.ResetHealth(health);
+                }
+            }
         }
         else
         {
-            activeWeaponID = null;
-            bulletsLeft = 0;
-            accumulatedBullets = 0;
-        }
-
-        grenadeCount = PlayerPrefs.GetInt("grenadeCount", 0);
-
-        // Load AI states and ensure all agents are registered
-        PatrolAgent[] patrolAgents = FindObjectsOfType<PatrolAgent>();
-        aiAgentStates.Clear();
-        foreach (var agent in patrolAgents)
-        {
-            string aiID = agent.uniqueID;
-            bool isDead = PlayerPrefs.GetInt(aiID, 0) == 1;
-            aiAgentStates[aiID] = isDead;
-
-            Debug.Log($"[LoadPlayerData] AI ID: {aiID} is marked as dead: {isDead}");
-            if (isDead)
-            {
-                agent.gameObject.SetActive(false);
-                Debug.Log($"[LoadPlayerData] Deactivated AI ID: {aiID}");
-            }
+            InitializeNewPlayerData();
         }
     }
-    else
-    {
-        InitializeNewPlayerData();
-    }
-}
-
-
 
     public void InitializeNewPlayerData()
     {
@@ -160,8 +173,9 @@ public class PlayerState : MonoBehaviour
         {
             agent.gameObject.SetActive(true);
             agent.ResetAgentPosition();
-            aiAgentStates[agent.uniqueID] = false;
-            PlayerPrefs.SetInt(agent.uniqueID, 0);
+            aiAgentStates[agent.uniqueID] = new AIStateData(false, agent.maxHits);
+            PlayerPrefs.SetInt(agent.uniqueID + "_isDead", 0);
+            PlayerPrefs.SetFloat(agent.uniqueID + "_health", agent.maxHits);
         }
 
         PlayerPrefs.SetInt("playerStarted", 1);
@@ -170,16 +184,27 @@ public class PlayerState : MonoBehaviour
         SavePlayerData();
     }
 
-    public void UpdateAIState(string aiID, bool isDead)
+    public void UpdateAIState(string aiID, bool isDead, float health)
     {
-        aiAgentStates[aiID] = isDead;
-        PlayerPrefs.SetInt(aiID, isDead ? 1 : 0);
+        aiAgentStates[aiID] = new AIStateData(isDead, health);
+        PlayerPrefs.SetInt(aiID + "_isDead", isDead ? 1 : 0);
+        PlayerPrefs.SetFloat(aiID + "_health", health);
         PlayerPrefs.Save();
+    }
+
+    // This is the new method to get the health of a specific AI
+    public float GetAIHealth(string aiID)
+    {
+        if (aiAgentStates.ContainsKey(aiID))
+        {
+            return aiAgentStates[aiID].health;
+        }
+        return 0f; // Default to 0 if the AI ID is not found
     }
 
     public bool IsAIDead(string aiID)
     {
-        return aiAgentStates.ContainsKey(aiID) && aiAgentStates[aiID];
+        return aiAgentStates.ContainsKey(aiID) && aiAgentStates[aiID].isDead;
     }
 
     public bool IsNewGame()
