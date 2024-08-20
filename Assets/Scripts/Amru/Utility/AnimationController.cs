@@ -6,6 +6,7 @@ public class AnimationController : MonoBehaviour
 {
     private Animator animator;
     public Movement movementScript;  // Reference to Movement script
+    private bool isHoldingGrenade = false;
 
     private void Awake()
     {
@@ -18,6 +19,16 @@ public class AnimationController : MonoBehaviour
         if (movementScript != null)
         {
             SetWalking(movementScript.isMoving);
+        }
+
+        // Control the animation speed based on holding state
+        if (isHoldingGrenade)
+        {
+            animator.speed = 0f; // Pause animation
+        }
+        else
+        {
+            animator.speed = 1f; // Resume animation
         }
     }
 
@@ -59,5 +70,17 @@ public class AnimationController : MonoBehaviour
         {
             grenadeManager.OnThrowAnimationEnd();
         }
+    }
+
+    // Call this method to pause the animation when holding the grenade
+    public void StartHoldingGrenade()
+    {
+        isHoldingGrenade = true;
+    }
+
+    // Call this method to resume the animation when releasing the grenade
+    public void StopHoldingGrenade()
+    {
+        isHoldingGrenade = false;
     }
 }

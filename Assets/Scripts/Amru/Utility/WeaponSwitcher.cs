@@ -167,38 +167,44 @@ public class WeaponSwitcher : MonoBehaviour
 
         AmmoManager.Instance.UpdateAmmoDisplay(currentWeapon);
         AmmoManager.Instance.ammoDisplay.gameObject.SetActive(true);
-        AmmoManager.Instance.throwForceSlider.gameObject.SetActive(false);
         AmmoManager.Instance.grenadeDisplay.gameObject.SetActive(false);
     }
 
-    private void SwitchToGrenadeHand()
+private void SwitchToGrenadeHand()
+{
+    // Destroy the existing grenade hand instance if it exists
+    if (grenadeHandInstance != null)
     {
-        if (grenadeHandInstance == null)
-        {
-            grenadeHandInstance = Instantiate(weaponDictionary[grenadeWeaponID], handHolder);
-            grenadeHandInstance.transform.localPosition = new Vector3(0, -1.45899999f, -0.479999989f);
-            grenadeHandInstance.transform.localRotation = Quaternion.identity;
-
-            AnimationController grenadeAnimationController = grenadeHandInstance.GetComponent<AnimationController>();
-            if (grenadeAnimationController != null)
-            {
-                grenadeAnimationController.movementScript = playerMovement;
-            }
-        }
-
-        if (currentWeapon != null)
-        {
-            currentWeapon.gameObject.SetActive(false);
-        }
-
-        grenadeHandInstance.SetActive(true);
-        isGrenadeActive = true;
-
-        AmmoManager.Instance.ammoDisplay.gameObject.SetActive(false);
-        AmmoManager.Instance.throwForceSlider.gameObject.SetActive(true);
-        AmmoManager.Instance.grenadeDisplay.gameObject.SetActive(true);
-        AmmoManager.Instance.UpdateGrenadeDisplay(PlayerState.Instance.grenadeCount);
+        Destroy(grenadeHandInstance);
     }
+
+    // Create a new grenade hand instance
+    grenadeHandInstance = Instantiate(weaponDictionary[grenadeWeaponID], handHolder);
+    grenadeHandInstance.transform.localPosition = new Vector3(0, -1.45899999f, -0.479999989f);
+    grenadeHandInstance.transform.localRotation = Quaternion.identity;
+
+    // Assign the movement script to the grenade hand's animation controller
+    AnimationController grenadeAnimationController = grenadeHandInstance.GetComponent<AnimationController>();
+    if (grenadeAnimationController != null)
+    {
+        grenadeAnimationController.movementScript = playerMovement;
+    }
+
+    // Deactivate the current weapon if it exists
+    if (currentWeapon != null)
+    {
+        currentWeapon.gameObject.SetActive(false);
+    }
+
+    // Activate the grenade hand and update the UI
+    grenadeHandInstance.SetActive(true);
+    isGrenadeActive = true;
+
+    AmmoManager.Instance.ammoDisplay.gameObject.SetActive(false);
+    AmmoManager.Instance.grenadeDisplay.gameObject.SetActive(true);
+    AmmoManager.Instance.UpdateGrenadeDisplay(PlayerState.Instance.grenadeCount);
+}
+
 
     private void SwitchToCurrentWeapon()
     {
@@ -215,7 +221,6 @@ public class WeaponSwitcher : MonoBehaviour
         }
 
         AmmoManager.Instance.ammoDisplay.gameObject.SetActive(true);
-        AmmoManager.Instance.throwForceSlider.gameObject.SetActive(false);
         AmmoManager.Instance.grenadeDisplay.gameObject.SetActive(false);
         AmmoManager.Instance.UpdateGrenadeDisplay(PlayerState.Instance.grenadeCount);
     }

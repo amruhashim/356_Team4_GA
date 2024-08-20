@@ -6,8 +6,6 @@ public class AmmoManager : MonoBehaviour
 {
     public static AmmoManager Instance { get; set; }
     public TextMeshProUGUI ammoDisplay;
-    public Slider throwForceSlider;
-    public TextMeshProUGUI chargeTimeDisplay;
     public TextMeshProUGUI grenadeDisplay;
 
     private void Awake()
@@ -29,19 +27,6 @@ public class AmmoManager : MonoBehaviour
         ammoDisplay.text = $"{weapon.bulletsLeft}/{weapon.accumulatedBullets}";
     }
 
-    public void UpdateThrowForceSlider(float value)
-    {
-        if (throwForceSlider != null)
-        {
-            throwForceSlider.value = value;
-            throwForceSlider.maxValue = 6.0f; 
-        }
-
-        if (chargeTimeDisplay != null)
-        {
-            chargeTimeDisplay.text = $"{value:F1}";  // Display charge time 
-        }
-    }
 
     // Updated method to access GrenadeManager and display currentGrenades / maxGrenades
         public void UpdateGrenadeDisplay(int currentGrenades)

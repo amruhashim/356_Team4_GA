@@ -13,6 +13,7 @@ public class SaveManager : MonoBehaviour
     private string jsonPathProject;
     private string jsonPathPersistent;
     private string binaryPath;
+    private string settingsPath; // Path for saving settings data
 
     public bool isSavingToJson;
 
@@ -38,6 +39,7 @@ public class SaveManager : MonoBehaviour
         jsonPathProject = Application.dataPath + Path.AltDirectorySeparatorChar + "SaveGame.json";
         jsonPathPersistent = Application.persistentDataPath + Path.AltDirectorySeparatorChar + "SaveGame.json";
         binaryPath = Application.persistentDataPath + "/save_game.bin";
+        settingsPath = Application.persistentDataPath + "/settings.json"; // Set the path for the settings file
 
         LoadAndApplyVolumeSettings();
     }
@@ -116,19 +118,21 @@ public class SaveManager : MonoBehaviour
             master = master
         };
 
-        PlayerPrefs.SetString("Volume", JsonUtility.ToJson(volumeSettings));
-        PlayerPrefs.Save();
-        Debug.Log("Volume settings saved");
+        string settingsJson = JsonUtility.ToJson(volumeSettings);
+        File.WriteAllText(settingsPath, settingsJson); // Save settings to a separate file
+        Debug.Log("Volume settings saved to file.");
     }
 
     public VolumeSettings LoadVolumeSettings()
     {
-        if (PlayerPrefs.HasKey("Volume"))
+        if (File.Exists(settingsPath))
         {
-            return JsonUtility.FromJson<VolumeSettings>(PlayerPrefs.GetString("Volume"));
+            string settingsJson = File.ReadAllText(settingsPath);
+            return JsonUtility.FromJson<VolumeSettings>(settingsJson);
         }
         else
         {
+            Debug.Log("No settings file found, using default settings.");
             return new VolumeSettings { music = 1.0f, effects = 1.0f, master = 1.0f };
         }
     }
