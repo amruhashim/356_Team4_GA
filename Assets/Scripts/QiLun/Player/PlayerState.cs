@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class PlayerState : MonoBehaviour
 {
@@ -27,7 +26,23 @@ public class PlayerState : MonoBehaviour
         }
     }
 
+    // Struct to hold Hostage state data
+    private struct HostageStateData
+    {
+        public Vector3 position;
+        public Quaternion rotation;
+        public bool isRescued;
+
+        public HostageStateData(Vector3 position, Quaternion rotation, bool isRescued)
+        {
+            this.position = position;
+            this.rotation = rotation;
+            this.isRescued = isRescued;
+        }
+    }
+
     private Dictionary<string, AIStateData> aiAgentStates = new Dictionary<string, AIStateData>();
+    private Dictionary<string, HostageStateData> hostageStates = new Dictionary<string, HostageStateData>();
 
     public Vector3 initialSpawnPoint = new Vector3(0, 1, 0);
     public Quaternion initialRotation = Quaternion.identity;
@@ -87,6 +102,18 @@ public class PlayerState : MonoBehaviour
             PlayerPrefs.SetFloat(kvp.Key + "_health", kvp.Value.health);
         }
 
+        // Save hostage states
+        foreach (var kvp in hostageStates)
+        {
+            PlayerPrefs.SetFloat(kvp.Key + "_posX", kvp.Value.position.x);
+            PlayerPrefs.SetFloat(kvp.Key + "_posY", kvp.Value.position.y);
+            PlayerPrefs.SetFloat(kvp.Key + "_posZ", kvp.Value.position.z);
+            PlayerPrefs.SetFloat(kvp.Key + "_rotX", kvp.Value.rotation.eulerAngles.x);
+            PlayerPrefs.SetFloat(kvp.Key + "_rotY", kvp.Value.rotation.eulerAngles.y);
+            PlayerPrefs.SetFloat(kvp.Key + "_rotZ", kvp.Value.rotation.eulerAngles.z);
+            PlayerPrefs.SetInt(kvp.Key + "_isRescued", kvp.Value.isRescued ? 1 : 0);
+        }
+
         PlayerPrefs.Save();
     }
 
@@ -142,6 +169,38 @@ public class PlayerState : MonoBehaviour
                     agent.ResetHealth(health);
                 }
             }
+
+            // Load hostage states
+            Hostage[] hostages = FindObjectsOfType<Hostage>();
+            hostageStates.Clear();
+            foreach (var hostage in hostages)
+            {
+                string hostageID = hostage.UniqueID;
+                Vector3 position = new Vector3(
+                    PlayerPrefs.GetFloat(hostageID + "_posX"),
+                    PlayerPrefs.GetFloat(hostageID + "_posY"),
+                    PlayerPrefs.GetFloat(hostageID + "_posZ")
+                );
+                Quaternion rotation = Quaternion.Euler(
+                    PlayerPrefs.GetFloat(hostageID + "_rotX"),
+                    PlayerPrefs.GetFloat(hostageID + "_rotY"),
+                    PlayerPrefs.GetFloat(hostageID + "_rotZ")
+                );
+                bool isRescued = PlayerPrefs.GetInt(hostageID + "_isRescued", 0) == 1;
+
+                hostageStates[hostageID] = new HostageStateData(position, rotation, isRescued);
+
+                if (isRescued)
+                {
+                    hostage.gameObject.SetActive(false); // Disable rescued hostages
+                }
+                else
+                {
+                    hostage.transform.position = position;
+                    hostage.transform.rotation = rotation;
+                    hostage.gameObject.SetActive(true); // Ensure the hostage is active
+                }
+            }
         }
         else
         {
@@ -167,6 +226,7 @@ public class PlayerState : MonoBehaviour
         grenadeCount = 5;
 
         aiAgentStates.Clear();
+        hostageStates.Clear();
 
         PatrolAgent[] patrolAgents = FindObjectsOfType<PatrolAgent>();
         foreach (var agent in patrolAgents)
@@ -174,8 +234,12 @@ public class PlayerState : MonoBehaviour
             agent.gameObject.SetActive(true);
             agent.ResetAgentPosition();
             aiAgentStates[agent.uniqueID] = new AIStateData(false, agent.maxHits);
-            PlayerPrefs.SetInt(agent.uniqueID + "_isDead", 0);
-            PlayerPrefs.SetFloat(agent.uniqueID + "_health", agent.maxHits);
+        }
+
+        Hostage[] hostages = FindObjectsOfType<Hostage>();
+        foreach (var hostage in hostages)
+        {
+            hostageStates[hostage.UniqueID] = new HostageStateData(hostage.transform.position, hostage.transform.rotation, false);
         }
 
         PlayerPrefs.SetInt("playerStarted", 1);
@@ -192,7 +256,20 @@ public class PlayerState : MonoBehaviour
         PlayerPrefs.Save();
     }
 
-    // This is the new method to get the health of a specific AI
+    public void UpdateHostageState(string hostageID, Vector3 position, Quaternion rotation, bool isRescued)
+    {
+        hostageStates[hostageID] = new HostageStateData(position, rotation, isRescued);
+        PlayerPrefs.SetFloat(hostageID + "_posX", position.x);
+        PlayerPrefs.SetFloat(hostageID + "_posY", position.y);
+        PlayerPrefs.SetFloat(hostageID + "_posZ", position.z);
+        PlayerPrefs.SetFloat(hostageID + "_rotX", rotation.eulerAngles.x);
+        PlayerPrefs.SetFloat(hostageID + "_rotY", rotation.eulerAngles.y);
+        PlayerPrefs.SetFloat(hostageID + "_rotZ", rotation.eulerAngles.z);
+        PlayerPrefs.SetInt(hostageID + "_isRescued", isRescued ? 1 : 0);
+        PlayerPrefs.Save();
+    }
+
+    // This is the method to get the health of a specific AI
     public float GetAIHealth(string aiID)
     {
         if (aiAgentStates.ContainsKey(aiID))

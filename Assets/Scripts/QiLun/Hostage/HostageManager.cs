@@ -110,36 +110,43 @@ public class HostageManager : MonoBehaviour
         if (currentHostage != null)
         {
             isCarrying = false;
-            hostageArm.SetActive(false);   // Disable the hostage arm
+            hostageArm.SetActive(false);
 
-            // Re-enable and reposition the hostage object in front of the player
-            Vector3 dropPosition = player.position + player.forward * 1.5f; // Drop in front of the player
+            Vector3 dropPosition = player.position + player.forward * 1.5f;
             currentHostage.transform.position = dropPosition;
-            currentHostage.transform.rotation = Quaternion.identity; // Reset rotation if necessary
-            currentHostage.gameObject.SetActive(true);      // Re-enable the Hostage object
+            currentHostage.transform.rotation = Quaternion.identity;
+            currentHostage.gameObject.SetActive(true);
+
+            // Update the hostage state in PlayerState
+            PlayerState.Instance.UpdateHostageState(currentHostage.UniqueID, dropPosition, Quaternion.identity, false);
 
             Debug.Log($"Hostage dropped and re-enabled. Hostage ID: {currentHostage.UniqueID}");
 
-            currentHostage = null; // Clear the reference after dropping the hostage
+            currentHostage = null;
         }
     }
-    
 
     public bool IsCarryingHostage()
-{
-    return isCarrying;
-}
-
-public void RescueHostage()
-{
-    if (currentHostage != null)
     {
-        Destroy(currentHostage.gameObject); // Remove the hostage from the game as they are rescued
-        currentHostage = null; // Clear the reference
-        isCarrying = false;
-        hostageArm.SetActive(false); // Disable the hostage arm
+        return isCarrying;
     }
-}
+
+
+
+    public void RescueHostage()
+    {
+        if (currentHostage != null)
+        {
+            // Update the hostage state in PlayerState as rescued
+            PlayerState.Instance.UpdateHostageState(currentHostage.UniqueID, currentHostage.transform.position, currentHostage.transform.rotation, true);
+
+            Destroy(currentHostage.gameObject); // Remove the hostage from the game as they are rescued
+            currentHostage = null; // Clear the reference
+            isCarrying = false;
+            hostageArm.SetActive(false);
+        }
+    }
+
 
 
 }
