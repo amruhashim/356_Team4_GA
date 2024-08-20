@@ -306,7 +306,8 @@ public class Chase : MonoBehaviour
             normal = { textColor = Color.black },
             fontStyle = FontStyle.Bold,
             alignment = TextAnchor.MiddleCenter,
-            padding = new RectOffset(5, 5, 5, 5) // Padding around the text
+            padding = new RectOffset(2, 2, 2, 2), // Reduced padding around the text
+            fontSize = 7 // Reduced font size for a smaller label
         };
 
         // Background color for labels

@@ -1,6 +1,6 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerState : MonoBehaviour
 {
@@ -9,27 +9,27 @@ public class PlayerState : MonoBehaviour
     public Transform playerTransform;
     public float currentHealth;
     public float maxHealth;
-    public string activeWeaponID;  // Store the current weapon's ID
-    public int bulletsLeft;        // Store bullets left for the active weapon
-    public int accumulatedBullets; // Store accumulated bullets for the active weapon
-    public int grenadeCount;       // Store current grenade count
+    public string activeWeaponID;
+    public int bulletsLeft;
+    public int accumulatedBullets;
+    public int grenadeCount;
+
+    private Dictionary<string, bool> aiAgentStates = new Dictionary<string, bool>();
+
+    public Vector3 initialSpawnPoint = new Vector3(0, 1, 0);
+    public Quaternion initialRotation = Quaternion.identity;
 
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-        }
-        else
+        if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
-    }
-
-    private void Start()
-    {
-        // Do not load player data automatically; let SaveManager control it
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     private void Update()
@@ -43,112 +43,145 @@ public class PlayerState : MonoBehaviour
                 {
                     currentHealth = 0;
                 }
-                Debug.Log($"Current Health after taking damage: {currentHealth}");
                 SavePlayerData();
             }
         }
     }
 
-    public void SavePlayerData()
+   public void SavePlayerData()
+{
+    PlayerPrefs.SetFloat("currentHealth", currentHealth);
+    PlayerPrefs.SetFloat("playerPositionX", playerTransform.position.x);
+    PlayerPrefs.SetFloat("playerPositionY", playerTransform.position.y);
+    PlayerPrefs.SetFloat("playerPositionZ", playerTransform.position.z);
+    PlayerPrefs.SetFloat("playerRotationX", playerTransform.rotation.eulerAngles.x);
+    PlayerPrefs.SetFloat("playerRotationY", playerTransform.rotation.eulerAngles.y);
+    PlayerPrefs.SetFloat("playerRotationZ", playerTransform.rotation.eulerAngles.z);
+
+    if (!string.IsNullOrEmpty(activeWeaponID))
     {
-        PlayerPrefs.SetFloat("currentHealth", currentHealth);
-        PlayerPrefs.SetFloat("playerPositionX", playerTransform.position.x);
-        PlayerPrefs.SetFloat("playerPositionY", playerTransform.position.y);
-        PlayerPrefs.SetFloat("playerPositionZ", playerTransform.position.z);
-        PlayerPrefs.SetFloat("playerRotationX", playerTransform.rotation.eulerAngles.x);
-        PlayerPrefs.SetFloat("playerRotationY", playerTransform.rotation.eulerAngles.y);
-        PlayerPrefs.SetFloat("playerRotationZ", playerTransform.rotation.eulerAngles.z);
-
-        if (!string.IsNullOrEmpty(activeWeaponID))
-        {
-            PlayerPrefs.SetString("activeWeaponID", activeWeaponID);  // Save the active weapon ID
-            PlayerPrefs.SetInt("bulletsLeft", bulletsLeft);           // Save bullets left for the active weapon
-            PlayerPrefs.SetInt("accumulatedBullets", accumulatedBullets); // Save accumulated bullets for the active weapon
-        }
-
-        // Save grenade count
-        PlayerPrefs.SetInt("grenadeCount", grenadeCount);
-
-        PlayerPrefs.Save();
-        Debug.Log("Player data saved.");
+        PlayerPrefs.SetString("activeWeaponID", activeWeaponID);
+        PlayerPrefs.SetInt("bulletsLeft", bulletsLeft);
+        PlayerPrefs.SetInt("accumulatedBullets", accumulatedBullets);
     }
 
-    public void LoadPlayerData()
+    PlayerPrefs.SetInt("grenadeCount", grenadeCount);
+
+    // Print and save AI states
+    Debug.Log("Saving AI States:");
+    foreach (var kvp in aiAgentStates)
     {
-        if (PlayerPrefs.HasKey("playerStarted"))
+        Debug.Log($"AI ID: {kvp.Key}, Is Dead: {kvp.Value}");
+        PlayerPrefs.SetInt(kvp.Key, kvp.Value ? 1 : 0);
+    }
+
+    PlayerPrefs.Save();
+}
+
+
+    public void LoadPlayerData()
+{
+    if (PlayerPrefs.HasKey("playerStarted"))
+    {
+        currentHealth = PlayerPrefs.GetFloat("currentHealth", maxHealth);
+
+        playerTransform.position = new Vector3(
+            PlayerPrefs.GetFloat("playerPositionX"),
+            PlayerPrefs.GetFloat("playerPositionY"),
+            PlayerPrefs.GetFloat("playerPositionZ")
+        );
+        playerTransform.rotation = Quaternion.Euler(
+            PlayerPrefs.GetFloat("playerRotationX"),
+            PlayerPrefs.GetFloat("playerRotationY"),
+            PlayerPrefs.GetFloat("playerRotationZ")
+        );
+
+        if (PlayerPrefs.HasKey("activeWeaponID"))
         {
-            currentHealth = PlayerPrefs.GetFloat("currentHealth", maxHealth);
-            Debug.Log($"Loaded Current Health: {currentHealth}");
-
-            // Load position and rotation from PlayerPrefs
-            playerTransform.position = new Vector3(
-                PlayerPrefs.GetFloat("playerPositionX"),
-                PlayerPrefs.GetFloat("playerPositionY"),
-                PlayerPrefs.GetFloat("playerPositionZ")
-            );
-            playerTransform.rotation = Quaternion.Euler(
-                PlayerPrefs.GetFloat("playerRotationX"),
-                PlayerPrefs.GetFloat("playerRotationY"),
-                PlayerPrefs.GetFloat("playerRotationZ")
-            );
-
-            // Load active weapon ID if available
-            if (PlayerPrefs.HasKey("activeWeaponID"))
-            {
-                activeWeaponID = PlayerPrefs.GetString("activeWeaponID");
-                Debug.Log($"Loaded Active Weapon ID: {activeWeaponID}");
-
-                // Load bullets left and accumulated bullets for the active weapon
-                bulletsLeft = PlayerPrefs.GetInt("bulletsLeft", 0);
-                accumulatedBullets = PlayerPrefs.GetInt("accumulatedBullets", 0);
-            }
-            else
-            {
-                activeWeaponID = null;
-                bulletsLeft = 0;
-                accumulatedBullets = 0;
-            }
-
-            // Load grenade count
-            grenadeCount = PlayerPrefs.GetInt("grenadeCount", 0);
-            Debug.Log($"Loaded Grenade Count: {grenadeCount}");
+            activeWeaponID = PlayerPrefs.GetString("activeWeaponID");
+            bulletsLeft = PlayerPrefs.GetInt("bulletsLeft", 0);
+            accumulatedBullets = PlayerPrefs.GetInt("accumulatedBullets", 0);
         }
         else
         {
-            // For a new game, initialize data instead of loading
-            InitializeNewPlayerData();
+            activeWeaponID = null;
+            bulletsLeft = 0;
+            accumulatedBullets = 0;
+        }
+
+        grenadeCount = PlayerPrefs.GetInt("grenadeCount", 0);
+
+        // Load AI states and ensure all agents are registered
+        PatrolAgent[] patrolAgents = FindObjectsOfType<PatrolAgent>();
+        aiAgentStates.Clear();
+        foreach (var agent in patrolAgents)
+        {
+            string aiID = agent.uniqueID;
+            bool isDead = PlayerPrefs.GetInt(aiID, 0) == 1;
+            aiAgentStates[aiID] = isDead;
+
+            Debug.Log($"[LoadPlayerData] AI ID: {aiID} is marked as dead: {isDead}");
+            if (isDead)
+            {
+                agent.gameObject.SetActive(false);
+                Debug.Log($"[LoadPlayerData] Deactivated AI ID: {aiID}");
+            }
         }
     }
+    else
+    {
+        InitializeNewPlayerData();
+    }
+}
+
+
 
     public void InitializeNewPlayerData()
     {
         currentHealth = maxHealth;
 
-        // Reset position and rotation to the initial spawn point
-        playerTransform.position = Vector3.zero; // Customize the spawn point if needed
-        playerTransform.rotation = Quaternion.identity;
+        playerTransform.position = initialSpawnPoint;
+        playerTransform.rotation = initialRotation;
 
-        activeWeaponID = null; // No active weapon for a new player
+        activeWeaponID = null;
 
-        grenadeCount = 0; // Start with zero grenades
-
-        // Notify all weapons to reset their bullets to default values
         Weapon[] weapons = FindObjectsOfType<Weapon>();
         foreach (Weapon weapon in weapons)
         {
             weapon.ResetBullets();
         }
 
-        // Save that the player has started the game
+        grenadeCount = 5;
+
+        aiAgentStates.Clear();
+
+        PatrolAgent[] patrolAgents = FindObjectsOfType<PatrolAgent>();
+        foreach (var agent in patrolAgents)
+        {
+            agent.gameObject.SetActive(true);
+            agent.ResetAgentPosition();
+            aiAgentStates[agent.uniqueID] = false;
+            PlayerPrefs.SetInt(agent.uniqueID, 0);
+        }
+
         PlayerPrefs.SetInt("playerStarted", 1);
         PlayerPrefs.Save();
 
         SavePlayerData();
-
-        Debug.Log("New player data initialized");
     }
 
-    // Method to check if it's a new game
+    public void UpdateAIState(string aiID, bool isDead)
+    {
+        aiAgentStates[aiID] = isDead;
+        PlayerPrefs.SetInt(aiID, isDead ? 1 : 0);
+        PlayerPrefs.Save();
+    }
+
+    public bool IsAIDead(string aiID)
+    {
+        return aiAgentStates.ContainsKey(aiID) && aiAgentStates[aiID];
+    }
+
     public bool IsNewGame()
     {
         return !PlayerPrefs.HasKey("playerStarted");

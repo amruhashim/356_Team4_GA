@@ -7,7 +7,7 @@ using UnityEngine.SceneManagement;
 
 public class SaveManager : MonoBehaviour
 {
-    public static SaveManager Instance { get; set; }
+    public static SaveManager Instance { get; private set; }
 
     // Paths for saving game data
     private string jsonPathProject;
@@ -46,7 +46,30 @@ public class SaveManager : MonoBehaviour
     public void SaveGame()
     {
         PlayerState.Instance.SavePlayerData();
-        Debug.Log("Game saved using PlayerPrefs");
+
+        // Log the file paths to the console
+        Debug.Log("Saving game data...");
+        Debug.Log($"JSON Path (Project): {jsonPathProject}");
+        Debug.Log($"JSON Path (Persistent): {jsonPathPersistent}");
+        Debug.Log($"Binary Path: {binaryPath}");
+
+        // Save to JSON file in project directory
+        string jsonData = JsonUtility.ToJson(PlayerState.Instance);
+        File.WriteAllText(jsonPathProject, jsonData);
+
+        // Save to JSON file in persistent data path
+        File.WriteAllText(jsonPathPersistent, jsonData);
+
+        // Save to binary file in persistent data path
+        using (FileStream fileStream = new FileStream(binaryPath, FileMode.Create))
+        {
+            using (BinaryWriter binaryWriter = new BinaryWriter(fileStream))
+            {
+                binaryWriter.Write(jsonData);
+            }
+        }
+
+        Debug.Log("Game saved using files");
     }
 
     public void StartLoadedGame(string sceneName)
@@ -64,20 +87,14 @@ public class SaveManager : MonoBehaviour
     public void StartNewGame(string sceneName)
     {
         PlayerPrefs.DeleteAll(); // Clear all PlayerPrefs, or selectively delete specific keys if needed
+        SceneManager.sceneLoaded += OnNewGameSceneLoaded;
         SceneManager.LoadScene(sceneName);
-        StartCoroutine(DelayedNewGame());
     }
 
-    private IEnumerator DelayedLoading()
+    private void OnNewGameSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        yield return new WaitForSeconds(0.5f);
-        PlayerState.Instance.LoadPlayerData();
-    }
-
-    private IEnumerator DelayedNewGame()
-    {
-        yield return new WaitForSeconds(0.5f);
         PlayerState.Instance.InitializeNewPlayerData();
+        SceneManager.sceneLoaded -= OnNewGameSceneLoaded; // Unsubscribe to avoid memory leaks
     }
     #endregion
 

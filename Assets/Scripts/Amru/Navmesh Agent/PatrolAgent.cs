@@ -9,8 +9,15 @@ using UnityEngine.AI;
 using UnityEngine.UI;
 
 public class PatrolAgent : MonoBehaviour
-{
+{ 
     #region Serialized Fields
+    [Tooltip("Unique ID for this AI.")]
+    public string uniqueID;  // A
+
+    [Tooltip("Spawn points for the AI.")]
+public Transform[] spawnPoints;  // Add this field
+
+    
     [Tooltip("Reference to the health bar Slider.")]
     public Slider healthBar;
 
@@ -68,18 +75,41 @@ public class PatrolAgent : MonoBehaviour
     #endregion
 
     #region Unity Methods
-    private void Start()
+private void Start()
+{
+    if (PlayerState.Instance != null && PlayerState.Instance.IsAIDead(uniqueID))
     {
-        agent = GetComponent<NavMeshAgent>();
-        animator = GetComponent<Animator>();
-        audioSource = GetComponent<AudioSource>();
-        healthBarBackground = healthBar.transform.Find("Background").GetComponent<Image>();
-        stateManager = GetComponent<AIStateManager>();
-
-        InitializeHealthBar();
-        initialPosition = transform.position;
-        MoveToNextWaypoint();
+        Debug.Log($"[Start] PatrolAgent {uniqueID} is dead. Deactivating.");
+        gameObject.SetActive(false); // Deactivate the AI if it is dead
+        return;
     }
+
+    Debug.Log($"[Start] PatrolAgent {uniqueID} is alive. Initializing.");
+
+    agent = GetComponent<NavMeshAgent>();
+    animator = GetComponent<Animator>();
+    audioSource = GetComponent<AudioSource>();
+    healthBarBackground = healthBar.transform.Find("Background").GetComponent<Image>();
+    stateManager = GetComponent<AIStateManager>();
+
+    InitializeHealthBar();
+
+    // Use the first waypoint as the initial spawn point
+    if (waypoints.Length > 0)
+    {
+        initialPosition = waypoints[0].position;
+        agent.Warp(initialPosition);
+    }
+    else
+    {
+        Debug.LogWarning("No waypoints assigned. Using current position as the spawn point.");
+        initialPosition = transform.position;
+    }
+
+    MoveToNextWaypoint();
+}
+
+
 
     private void Update()
     {
@@ -243,7 +273,7 @@ public void ReachedWaypoint(Vector3 collisionPosition)
         hitCount++;
         if (hitCount >= maxHits)
         {
-            StartCoroutine(HandleDeath());
+            HandleDeath();
         }
         else
         {
@@ -256,7 +286,7 @@ public void ReachedWaypoint(Vector3 collisionPosition)
         hitCount += Mathf.CeilToInt(damage);
         if (hitCount >= maxHits)
         {
-            StartCoroutine(HandleDeath());
+            HandleDeath();
         }
         else
         {
@@ -276,37 +306,60 @@ public void ReachedWaypoint(Vector3 collisionPosition)
         return randomColor;
     }
 
-    private IEnumerator HandleDeath()
-    {
-        StopAllCoroutines();
-        agent.isStopped = true;
-        animator.SetBool("isWalking", false);
-        animator.Rebind();
-        audioSource.PlayOneShot(deathSound);
+private void HandleDeath()
+{
+    Debug.Log($"[HandleDeath] PatrolAgent {uniqueID} has died.");
+    StopAllCoroutines();
+    agent.isStopped = true;
+    animator.SetBool("isWalking", false);
+    animator.Rebind();
+    audioSource.PlayOneShot(deathSound);
 
-        isWaiting = false;
+    // Mark this AI as dead in PlayerState
+    PlayerState.Instance?.UpdateAIState(uniqueID, true);
+    Debug.Log($"[HandleDeath] PatrolAgent {uniqueID} state updated in PlayerState.");
 
-        ResetAgentPosition();
-        hitCount = 0;
-        healthBarBackground.color = Color.red;
-        UpdateHealthBar();
+    healthBarBackground.color = Color.red;
+    UpdateHealthBar();
 
-        yield return new WaitForSeconds(1f);
+    gameObject.SetActive(false); // Deactivate the AI immediately without delay
+}
 
-        RespawnAgent();
-    }
 
-    private void RespawnAgent()
+
+// RespawnAgent method checks if the AI should respawn
+private void RespawnAgent()
+{
+    if (PlayerState.Instance != null && !PlayerState.Instance.IsAIDead(uniqueID))
     {
         agent.isStopped = false;
-        stateManager.ChangeState(AIStateManager.AIState.Patrolling); 
+        stateManager.ChangeState(AIStateManager.AIState.Patrolling);
         MoveToNextWaypoint();
     }
-
-    private void ResetAgentPosition()
+    else
     {
-        agent.Warp(initialPosition);
+        gameObject.SetActive(false); // Deactivate the AI if it should not respawn
     }
+}
+
+
+
+public void ResetAgentPosition()
+{
+    if (agent == null)
+    {
+        agent = GetComponent<NavMeshAgent>();
+        if (agent == null)
+        {
+            Debug.LogError("NavMeshAgent component is missing!");
+            return;
+        }
+    }
+
+    agent.Warp(initialPosition);
+}
+
+
 
     private void InitializeHealthBar()
     {
@@ -328,17 +381,17 @@ public void ReachedWaypoint(Vector3 collisionPosition)
     }
     #endregion
 
-
-#if UNITY_EDITOR
+    #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
-        // Custom GUIStyle for text with background
-        GUIStyle labelStyle = new GUIStyle
+        // Custom GUIStyle for small text with background
+        GUIStyle smallLabelStyle = new GUIStyle
         {
             normal = { textColor = Color.black },
             fontStyle = FontStyle.Bold,
             alignment = TextAnchor.MiddleCenter,
-            padding = new RectOffset(5, 5, 5, 5) // Padding around the text
+            padding = new RectOffset(2, 2, 2, 2), // Reduced padding
+            fontSize = 7 // Smaller font size
         };
 
         // Background color for labels
@@ -357,7 +410,7 @@ public void ReachedWaypoint(Vector3 collisionPosition)
         }
 
         // Label the patrol vision range sphere
-        DrawLabelWithBackground(transform.position + Vector3.up * (visionRange + 1f), "Patrol Vision Range", labelStyle, backgroundColor);
+        DrawLabelWithBackground(transform.position + Vector3.up * (visionRange + 1f), "Patrol Vision Range", smallLabelStyle, backgroundColor);
 
         // Draw the vision cone with thicker lines
         Vector3 forward = transform.forward * visionRange;
@@ -377,16 +430,16 @@ public void ReachedWaypoint(Vector3 collisionPosition)
         Handles.DrawSolidArc(transform.position, Vector3.up, leftBoundary.normalized, visionAngle, visionRange);
 
         // Label the vision range
-        DrawLabelWithBackground(transform.position + forward.normalized * (visionRange + 1f), "Vision Range", labelStyle, backgroundColor);
+        DrawLabelWithBackground(transform.position + forward.normalized * (visionRange + 1f), "Vision Range", smallLabelStyle, backgroundColor);
 
         // Draw labels for the state and vision range
-        DrawLabelWithBackground(transform.position + Vector3.up * 2, $"State: {stateManager?.currentState ?? AIStateManager.AIState.Patrolling}", labelStyle, backgroundColor);
-        DrawLabelWithBackground(transform.position + forward.normalized * visionRange, $"Vision Range: {visionRange}m", labelStyle, backgroundColor);
+        DrawLabelWithBackground(transform.position + Vector3.up * 2, $"State: {stateManager?.currentState ?? AIStateManager.AIState.Patrolling}", smallLabelStyle, backgroundColor);
+        DrawLabelWithBackground(transform.position + forward.normalized * visionRange, $"Vision Range: {visionRange}m", smallLabelStyle, backgroundColor);
 
         // Visualize the hearing range
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, hearingRange);
-        DrawLabelWithBackground(transform.position + Vector3.up * (hearingRange + 1f), "Hearing Range", labelStyle, backgroundColor);
+        DrawLabelWithBackground(transform.position + Vector3.up * (hearingRange + 1f), "Hearing Range", smallLabelStyle, backgroundColor);
 
         // Visualize all waypoints and the travel path
         Gizmos.color = Color.blue;
@@ -394,13 +447,12 @@ public void ReachedWaypoint(Vector3 collisionPosition)
         for (int i = 0; i < waypoints.Length; i++)
         {
             Transform waypoint = waypoints[i];
-
             if (waypoint == null) continue;
 
             Gizmos.color = Color.blue; // Normal waypoints are blue
             Gizmos.DrawSphere(waypoint.position, 0.5f);
-            DrawLabelWithBackground(waypoint.position + Vector3.up * 1.5f, $"Waypoint {i + 1}", labelStyle, backgroundColor);
 
+            // Draw lines connecting waypoints
             Gizmos.DrawLine(previousPosition, waypoint.position);
             previousPosition = waypoint.position;
         }
@@ -410,8 +462,6 @@ public void ReachedWaypoint(Vector3 collisionPosition)
         foreach (Transform soundWaypoint in soundWaypoints)
         {
             Gizmos.DrawSphere(soundWaypoint.position, 0.5f);
-            DrawLabelWithBackground(soundWaypoint.position + Vector3.up * 1.5f, "Sound Waypoint", labelStyle, backgroundColor);
-
             Gizmos.DrawLine(previousPosition, soundWaypoint.position);
             previousPosition = soundWaypoint.position;
         }
@@ -423,23 +473,12 @@ public void ReachedWaypoint(Vector3 collisionPosition)
     private void DrawLabelWithBackground(Vector3 position, string text, GUIStyle style, Color backgroundColor)
     {
         Handles.BeginGUI();
-
-        // Convert the 3D position to a 2D GUI position
         Vector2 guiPosition = HandleUtility.WorldToGUIPoint(position);
-
-        // Calculate the size of the text
         Vector2 size = style.CalcSize(new GUIContent(text));
-
-        // Draw a background rectangle
         EditorGUI.DrawRect(new Rect(guiPosition.x - size.x / 2, guiPosition.y - size.y / 2, size.x, size.y), backgroundColor);
-
-        // Draw the label
         GUI.Label(new Rect(guiPosition.x - size.x / 2, guiPosition.y - size.y / 2, size.x, size.y), text, style);
-
         Handles.EndGUI();
     }
 #endif
-
-
 
 }
