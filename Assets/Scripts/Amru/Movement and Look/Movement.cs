@@ -23,12 +23,13 @@ public class Movement : MonoBehaviour
     [SerializeField] private AudioClip audioClipLanding;
     [SerializeField] private float walkAudioSpeed = 0.4f;
 
-    private CharacterController charController;
+    public CharacterController charController;
     private AudioSource audioSource;
     private Vector3 moveDirection = Vector3.zero;
 
     private bool isJumping;
-    public bool isMoving; // Boolean to track if the player is moving
+    public static bool isMoving;
+ // Boolean to track if the player is moving
     private float walkAudioTimer = 0.0f;
     private int currentClipIndex = 0;
 

@@ -18,7 +18,7 @@ public class AnimationController : MonoBehaviour
         // Check if movementScript is assigned and use its isMoving property
         if (movementScript != null)
         {
-            SetWalking(movementScript.isMoving);
+            SetWalking(Movement.isMoving);
         }
 
         // Control the animation speed based on holding state
