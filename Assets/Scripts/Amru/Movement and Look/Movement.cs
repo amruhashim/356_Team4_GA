@@ -119,38 +119,33 @@ public class Movement : MonoBehaviour
         }
     }
 
-private void Jump()
-{
-    float gravity = -Physics.gravity.y;
-    float velocity = Mathf.Sqrt(gravity * jumpHeight * 2);
-
-    // Increase the jump height based on the jump duration
-    float heightMultiplier = 1 + (jumpDuration / 2f);
-    velocity *= heightMultiplier;
-
-    rigidBody.velocity = new Vector3(rigidBody.velocity.x, velocity, rigidBody.velocity.z);
-
-    StartCoroutine(JumpCoroutine(jumpDuration));
-}
-
-private IEnumerator JumpCoroutine(float duration)
-{
-    float timer = 0f;
-
-    while (timer < duration)
+    private void Jump()
     {
-        timer += Time.deltaTime;
+        float gravity = -Physics.gravity.y;
+        float velocity = Mathf.Sqrt(gravity * jumpHeight * 2);
 
-        float t = timer / duration;
-        t = t * t * (3f - 2f * t); // Smoothstep function
+        rigidBody.velocity = new Vector3(rigidBody.velocity.x, velocity, rigidBody.velocity.z);
 
-        // Adjust the jump curve value to make the jump feel more natural
-        float height = Mathf.Lerp(jumpHeight, 0f, t * 0.5f);
-        rigidBody.velocity = new Vector3(rigidBody.velocity.x, Mathf.Sqrt(-Physics.gravity.y * height * 2), rigidBody.velocity.z);
-
-        yield return null;
+        StartCoroutine(JumpCoroutine(jumpDuration));
     }
-}
+
+    private IEnumerator JumpCoroutine(float duration)
+    {
+        float timer = 0f;
+
+        while (timer < duration)
+        {
+            timer += Time.deltaTime;
+
+            float t = timer / duration;
+            t = t * t * (3f - 2f * t); // Smoothstep function
+
+            float height = Mathf.Lerp(jumpHeight, 0f, t);
+            rigidBody.velocity = new Vector3(rigidBody.velocity.x, Mathf.Sqrt(-Physics.gravity.y * height * 2), rigidBody.velocity.z);
+
+            yield return null;
+        }
+    }
 
     private Vector2 GetInput()
     {
@@ -204,26 +199,4 @@ private IEnumerator JumpCoroutine(float duration)
         float angle = Vector3.Angle(normal, Vector3.up);
         return slopeCurveModifier.Evaluate(angle);
     }
-
-    #if UNITY_EDITOR
-private void OnDrawGizmos()
-{
-    // Draw ground check sphere
-    Gizmos.color = Color.red;
-    Vector3 groundCheckPosition = transform.position + Vector3.down * (((capsule.height / 2f) - capsule.radius) + groundCheckDistance);
-    Gizmos.DrawWireSphere(groundCheckPosition, capsule.radius * (1f - shellOffset));
-
-    // Draw forward direction
-    Gizmos.color = Color.green;
-    Gizmos.DrawLine(transform.position, transform.position + transform.forward * 2.0f);
-
-    // Draw a simple jump arc visualization
-    Gizmos.color = Color.blue;
-    Vector3 startPosition = transform.position + Vector3.up * capsule.height / 2;
-    Vector3 peakPosition = startPosition + Vector3.up * jumpHeight;
-    Gizmos.DrawLine(startPosition, peakPosition);
-    Gizmos.DrawLine(peakPosition, peakPosition + transform.forward * 2.0f);
-}
-#endif
-
 }
