@@ -1,6 +1,13 @@
 using UnityEngine;
 using Cinemachine;
 using System.Collections.Generic;
+using UnityEngine.AI;
+
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
+using UnityEngine;
 
 [System.Serializable]
 public class WeaponEntry
@@ -19,8 +26,9 @@ public class WeaponSwitcher : MonoBehaviour
     public CinemachineVirtualCamera droneCamera;
     public Movement playerMovement;
     public Camera mainCamera;
-    public float droneSwitchBackDistance = 50f; // Max distance for the drone
+  
 
+   
     private GameObject droneInstance;
     private bool isGrenadeActive = false;
     private bool isDroneActive = false;
@@ -35,14 +43,14 @@ public class WeaponSwitcher : MonoBehaviour
     public string grenadeWeaponID; // ID for the grenade hand
 
     private Dictionary<string, GameObject> weaponDictionary;
-
+private CharacterController characterController;
     private void Start()
     {
         if (mainCamera == null)
         {
             mainCamera = Camera.main;
         }
-
+        characterController = GetComponent<CharacterController>();
         playerCamera.Priority = 10;
         droneCamera.Priority = 0;
 
@@ -72,15 +80,43 @@ public class WeaponSwitcher : MonoBehaviour
         }
     }
 
-    private void Update()
+private void Update()
+{
+     HandleInput();
+    if (isDroneActive)
     {
-        HandleInput();
-        if (isDroneActive)
+        CheckPlayerDistance();
+    }
+}
+
+public float timeOutOfRange = 0f; // Current time out of range
+public float maxTimeOutOfRange = 2f; // 2 seconds out of range allowed
+public float maxDistance = 200f; // Maximum allowed distance between drone and player
+
+private void CheckPlayerDistance()
+{
+    Vector3 playerPosition = characterController.transform.position;
+    Vector3 dronePosition = droneInstance.transform.position;
+
+    float distanceToPlayer = Vector3.SqrMagnitude(dronePosition - playerPosition);
+
+    float maxDistanceSquared = maxDistance * maxDistance; // Square maxDistance for correct comparison
+
+    if (distanceToPlayer > maxDistanceSquared)
+    {
+        timeOutOfRange += Time.deltaTime; // Accumulate timer normally
+        if (timeOutOfRange >= maxTimeOutOfRange)
         {
-            CheckDroneRaycastDetection();
-            CheckDroneDistance();
+            Debug.Log("Player out of range for too long. Toggling drone off.");
+            ToggleDrone();
         }
     }
+    else
+    {
+        timeOutOfRange = 0f; // Reset timer if player is within range
+    }
+}
+
 
     private void HandleInput()
     {
@@ -224,100 +260,72 @@ private void SwitchToGrenadeHand()
         AmmoManager.Instance.grenadeDisplay.gameObject.SetActive(false);
         AmmoManager.Instance.UpdateGrenadeDisplay(PlayerState.Instance.grenadeCount);
     }
-
-    private void ToggleDrone()
+private void ToggleDrone()
+{
+    if (isDroneActive)
     {
-        if (isDroneActive)
+        Destroy(droneInstance);
+        droneCamera.Priority = 0;
+        playerCamera.Priority = 10;
+        droneCamera.Follow = null;
+        droneCamera.LookAt = null;
+
+        foreach (GameObject obj in objectsToDisable)
         {
-            Destroy(droneInstance);
-            droneCamera.Priority = 0;
-            playerCamera.Priority = 10;
-            droneCamera.Follow = null;
-            droneCamera.LookAt = null;
-
-            foreach (GameObject obj in objectsToDisable)
-            {
-                obj.SetActive(true);
-            }
-
-            foreach (MonoBehaviour script in scriptsToDisable)
-            {
-                script.enabled = true;
-            }
-
-            isDroneActive = false;
+            obj.SetActive(true);
         }
-        else
+
+        foreach (MonoBehaviour script in scriptsToDisable)
         {
-            Vector3 direction = playerCamera.transform.forward;
-            droneInstance = Instantiate(dronePrefab, droneSpawner.position, Quaternion.identity);
-            droneInstance.GetComponent<DroneMovement>().SetInitialRotation(direction);
-
-            droneCamera.Priority = 10;
-            playerCamera.Priority = 0;
-            droneCamera.Follow = droneInstance.transform;
-            droneCamera.LookAt = droneInstance.transform;
-
-            foreach (GameObject obj in objectsToDisable)
-            {
-                obj.SetActive(false);
-            }
-
-            foreach (MonoBehaviour script in scriptsToDisable)
-            {
-                script.enabled = false;
-            }
-
-            isDroneActive = true;
+            script.enabled = true;
         }
+
+        playerMovement.freezePosition = false;  // Unfreeze player movement
+        isDroneActive = false;
     }
-
-    private void CheckDroneRaycastDetection()
+    else
     {
-        if (droneInstance != null)
+        if (droneInstance == null)
         {
+            Vector3 spawnPosition = droneSpawner.position;
+            Ray ray = new Ray(spawnPosition, Vector3.down);
             RaycastHit hit;
-            Vector3 directionToPlayer = (playerCamera.transform.position - droneInstance.transform.position).normalized;
 
-            if (Physics.Raycast(droneInstance.transform.position, directionToPlayer, out hit, Mathf.Infinity))
+            if (Physics.Raycast(ray, out hit, 10f, LayerMask.GetMask("Ground")))
             {
-                if (hit.collider.CompareTag("Player"))
+                spawnPosition = hit.point;
+                droneInstance = Instantiate(dronePrefab, spawnPosition, Quaternion.identity);
+                droneInstance.GetComponent<DroneMovement>().SetInitialRotation(playerCamera.transform.forward);
+
+                droneCamera.Priority = 10;
+                playerCamera.Priority = 0;
+                droneCamera.Follow = droneInstance.transform;
+                droneCamera.LookAt = droneInstance.transform;
+
+                foreach (GameObject obj in objectsToDisable)
                 {
-                    Debug.Log("Player detected by drone");
-                    // Perform any action you want when the player is detected
+                    obj.SetActive(false);
                 }
-                else
+
+                foreach (MonoBehaviour script in scriptsToDisable)
                 {
-                    Debug.Log("Obstacle detected, but drone remains active");
-                    // Perform any action you want when an obstacle is detected,
-                    // but do not switch back to the weapon.
+                    script.enabled = false;
                 }
+
+                playerMovement.freezePosition = true;  // Freeze player movement
+                isDroneActive = true;
+            }
+            else
+            {
+                Debug.LogWarning("No suitable surface found for drone spawn.");
             }
         }
     }
+}
 
-    private void CheckDroneDistance()
-    {
-        if (droneInstance != null)
-        {
-            float distance = Vector3.Distance(droneInstance.transform.position, playerCamera.transform.position);
-            if (distance > droneSwitchBackDistance)
-            {
-                ToggleDrone(); // Switch back to weapon if drone goes out of range
-            }
-        }
-    }
 
-#if UNITY_EDITOR
-    private void OnDrawGizmosSelected()
-    {
-        if (isDroneActive && droneInstance != null)
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(droneInstance.transform.position, droneSwitchBackDistance);
-        }
-    }
-#endif
+
+
 
     public void SwitchWeaponByID(string weaponID, bool isLoadingGame = false)
     {
@@ -330,4 +338,43 @@ private void SwitchToGrenadeHand()
             Debug.LogWarning("Weapon ID not found in dictionary: " + weaponID);
         }
     }
+
+
+
+#if UNITY_EDITOR
+private void OnDrawGizmosSelected()
+{
+    if (droneInstance != null && PlayerState.Instance != null)
+    {
+        Vector3 playerPosition = PlayerState.Instance.playerTransform.position;
+        Vector3 dronePosition = droneInstance.transform.position;
+
+        // Draw the max distance range as a sphere
+        Gizmos.color = new Color(0f, 1f, 0f, 0.2f); // Semi-transparent green
+        Gizmos.DrawSphere(playerPosition, maxDistance);
+
+        // Draw a line between the player and the drone
+        Gizmos.color = Vector3.Distance(dronePosition, playerPosition) > maxDistance ? Color.red : Color.green;
+        Gizmos.DrawLine(dronePosition, playerPosition);
+
+        // Mark the player's position
+        Gizmos.color = Color.green;
+        Gizmos.DrawSphere(playerPosition, 0.3f); // Draw a sphere at the player's position
+    }
+    else
+    {
+        // Draw a line from the drone spawner to the ground
+        Vector3 spawnPosition = droneSpawner.position;
+        Ray ray = new Ray(spawnPosition, Vector3.down);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, 10f, LayerMask.GetMask("Ground")))
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawLine(spawnPosition, hit.point);
+        }
+    }
+}
+#endif
+
 }

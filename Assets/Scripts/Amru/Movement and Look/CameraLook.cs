@@ -23,14 +23,12 @@ public class CameraLook : MonoBehaviour
 
     [Header("References")]
 
-    [Tooltip("The player's rigidbody component.")]
-    public Rigidbody playerRigidbody;
-
     [Tooltip("The camera's transform.")]
     public Transform playerCamera;
     #endregion
 
     #region FIELDS
+    private CharacterController characterController;
     private Quaternion rotationCharacter;
     private Quaternion rotationCamera;
     private bool isCursorLocked = false;
@@ -42,8 +40,9 @@ public class CameraLook : MonoBehaviour
         // Initialize cursor state
         SetCursorState(false);
 
-        // Cache the initial rotations
-        rotationCharacter = playerRigidbody.transform.localRotation;
+        // Cache the CharacterController reference and initial rotations
+        characterController = GetComponent<CharacterController>();
+        rotationCharacter = characterController.transform.localRotation;
         rotationCamera = playerCamera.localRotation;
     }
 
@@ -86,7 +85,7 @@ public class CameraLook : MonoBehaviour
             // Interpolate local rotation
             localRotation = Quaternion.Slerp(localRotation, rotationCamera, Time.deltaTime * interpolationSpeed);
             // Interpolate character rotation
-            playerRigidbody.MoveRotation(Quaternion.Slerp(playerRigidbody.rotation, rotationCharacter, Time.deltaTime * interpolationSpeed));
+            characterController.transform.localRotation = Quaternion.Slerp(characterController.transform.localRotation, rotationCharacter, Time.deltaTime * interpolationSpeed);
         }
         else
         {
@@ -96,7 +95,7 @@ public class CameraLook : MonoBehaviour
             localRotation = Clamp(localRotation);
 
             // Rotate character
-            playerRigidbody.MoveRotation(playerRigidbody.rotation * rotationYaw);
+            characterController.transform.localRotation *= rotationYaw;
         }
 
         // Set local rotation

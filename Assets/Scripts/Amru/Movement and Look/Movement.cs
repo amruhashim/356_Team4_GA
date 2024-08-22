@@ -1,4 +1,5 @@
-using System.Collections;
+
+  using System.Collections;
 using UnityEngine;
 
 public class Movement : MonoBehaviour
@@ -29,9 +30,11 @@ public class Movement : MonoBehaviour
 
     private bool isJumping;
     public static bool isMoving;
- // Boolean to track if the player is moving
     private float walkAudioTimer = 0.0f;
     private int currentClipIndex = 0;
+    
+    // New variable to freeze position
+    public bool freezePosition = false;
 
     private void Awake()
     {
@@ -41,8 +44,11 @@ public class Movement : MonoBehaviour
 
     private void Update()
     {
-        PlayerMovement();
-        PlayFootsteps();
+        if (!freezePosition)
+        {
+            PlayerMovement();
+            PlayFootsteps();
+        }
     }
 
     private void PlayerMovement()
@@ -53,13 +59,11 @@ public class Movement : MonoBehaviour
         Vector3 forwardMovement = transform.forward * vertInput;
         Vector3 rightMovement = transform.right * horizInput;
 
-        // Determine movement direction and set isMoving boolean
         Vector3 combinedMovement = Vector3.ClampMagnitude(forwardMovement + rightMovement, 1.0f) * movementSpeed;
         isMoving = combinedMovement.magnitude > 0.1f;
 
         charController.SimpleMove(combinedMovement);
 
-        // Handle slope movement
         if ((vertInput != 0 || horizInput != 0) && OnSlope())
         {
             charController.Move(Vector3.down * charController.height / 2 * slopeForce * Time.deltaTime);
@@ -70,8 +74,7 @@ public class Movement : MonoBehaviour
 
     private bool OnSlope()
     {
-        if (isJumping)
-            return false;
+        if (isJumping) return false;
 
         RaycastHit hit;
         if (Physics.Raycast(transform.position, Vector3.down, out hit, charController.height / 2 * slopeForceRayLength))
@@ -96,7 +99,7 @@ public class Movement : MonoBehaviour
 
     private IEnumerator JumpEvent()
     {
-        charController.slopeLimit = 90.0f; // Allow jumping up slopes
+        charController.slopeLimit = 90.0f;
         float timeInAir = 0.0f;
         do
         {
@@ -106,9 +109,9 @@ public class Movement : MonoBehaviour
             yield return null;
         } while (!charController.isGrounded && charController.collisionFlags != CollisionFlags.Above);
 
-        charController.slopeLimit = 45.0f; // Reset slope limit after jump
+        charController.slopeLimit = 45.0f;
         isJumping = false;
-        PlayLandingSound(); // Play landing sound when grounded
+        PlayLandingSound();
     }
 
     private void PlayFootsteps()
