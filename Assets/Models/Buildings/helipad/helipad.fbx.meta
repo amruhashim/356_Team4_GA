@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: c365c1580559fb64b997397515367a17
+guid: ce61b9afe5b1bf144ad7115d8e9e7c8e
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
@@ -7,73 +7,63 @@ ModelImporter:
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
-      name: ammo_dif
-    second: {fileID: 2800000, guid: 006e5d9dd0e26f3448f1b8106651aed2, type: 3}
+      name: Helipad_Base_color
+    second: {fileID: 2800000, guid: afdb558c876768e4c97d74e0fc78ae33, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
-      name: black
-    second: {fileID: 2800000, guid: 0d8da9b2416016c40b223b3e1cba51e5, type: 3}
+      name: Helipad_Metallic
+    second: {fileID: 2800000, guid: f115407c769d79a41a9d8017bddff553, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
-      name: chair_dif
-    second: {fileID: 2800000, guid: 8da65597cd4b7564997829585560497f, type: 3}
+      name: Helipad_Normal_OpenGL
+    second: {fileID: 2800000, guid: 56f6ce6a32a4fb748b26500356775e02, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
-      name: dif
-    second: {fileID: 2800000, guid: 2e3bc1ad1f1d4c44192a0d422c10e752, type: 3}
+      name: Helipad_Roughness
+    second: {fileID: 2800000, guid: d761238d52153b448a118d562429ec1f, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
-      name: door_dif
-    second: {fileID: 2800000, guid: ca63a7c3376659d4687402efd16c65d0, type: 3}
+      name: Iron_2_Base_color
+    second: {fileID: 2800000, guid: a8c0b45704b09a4489b073148e1beed8, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
-      name: engine_dif
-    second: {fileID: 2800000, guid: ed1e56450e7402a4481cb1d49cb0dc1d, type: 3}
+      name: Iron_2_Metallic
+    second: {fileID: 2800000, guid: 4c5ea48c6493bea40ace31a7f82e3d26, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
-      name: frontdoor_dif
-    second: {fileID: 2800000, guid: 34b9584d3d1c96b449eac1d55ea009c2, type: 3}
+      name: Iron_2_Normal_OpenGL
+    second: {fileID: 2800000, guid: 9fbf9c33ebe1b7944b7273d30c3ea121, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
-      name: jammer_dif
-    second: {fileID: 2800000, guid: 97f0879cc1a75994d97e8e81c5e9121a, type: 3}
+      name: Iron_2_Roughness
+    second: {fileID: 2800000, guid: bbae5a458e94037429011ba4a36df263, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
-      name: lamp_dif
-    second: {fileID: 2800000, guid: 40b0052954a0e8348a7c12345adc85c4, type: 3}
+      name: None_Base_color_1001
+    second: {fileID: 2800000, guid: 6fc38edc7f2494242a602ad3d79e676e, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
-      name: mainhull_dif
-    second: {fileID: 2800000, guid: e6bd40bc04bd77846953ee6fefbb5ca2, type: 3}
+      name: None_Metallic_1001
+    second: {fileID: 2800000, guid: 5356834c6ff535d4ebc07f5f14da3715, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
-      name: rotor_dif
-    second: {fileID: 2800000, guid: 13bf958845e54fc4a9c44c79d20a403e, type: 3}
+      name: None_Normal_OpenGL_1001
+    second: {fileID: 2800000, guid: 3844f158b0385ab418f816466b552760, type: 3}
   - first:
       type: UnityEngine:Texture2D
       assembly: UnityEngine.CoreModule
-      name: rotorhead_dif
-    second: {fileID: 2800000, guid: 644c02290cab6c64f967aee76b8f7bb5, type: 3}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: tailwing_dif
-    second: {fileID: 2800000, guid: b62aad1c0cd6d4f4285a0c7bac47da07, type: 3}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: wheel_dif
-    second: {fileID: 2800000, guid: 277d813799ecc914ca8bc6d52034e5be, type: 3}
+      name: None_Roughness_1001
+    second: {fileID: 2800000, guid: 1661b131ca70178498829d1a872a8786, type: 3}
   materials:
     materialImportMode: 2
     materialName: 0
@@ -137,7 +127,7 @@ ModelImporter:
     secondaryUVMinLightmapResolution: 40
     secondaryUVMinObjectScale: 1
     secondaryUVPackMargin: 4
-    useFileScale: 0
+    useFileScale: 1
     strictVertexDataChecks: 0
   tangentSpace:
     normalSmoothAngle: 60

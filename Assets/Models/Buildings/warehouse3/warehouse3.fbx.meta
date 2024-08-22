@@ -1,0 +1,304 @@
+fileFormatVersion: 2
+guid: 9aa571f3b90dbc34681f700bd1488fd6
+ModelImporter:
+  serializedVersion: 22200
+  internalIDToNameTable: []
+  externalObjects:
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: DoorMetal_BaseColor
+    second: {fileID: 2800000, guid: b2ba6a21011f407499bb64ac6b43a937, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: DoorMetal_Metallic
+    second: {fileID: 2800000, guid: a81f7dd4309e6c240a5e11bf039a0ec8, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: DoorMetal_Roughness
+    second: {fileID: 2800000, guid: 8a1b170a7031c2c44810cb10a4458d15, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Metal iron 4_baseColor
+    second: {fileID: 2800000, guid: aa68146cf3906214a8d03afa4a1bb4bf, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Metal iron 4_metallic
+    second: {fileID: 2800000, guid: 7554bf28cf1fa4f41a72540ea5a653fd, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Metal iron 4_normal
+    second: {fileID: 2800000, guid: 2946733c9b6476a4fa596c8a55d04912, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Metal iron 4_roughness
+    second: {fileID: 2800000, guid: 69789586c6c84fe4ea7c18f85b672018, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Substance_graph_basecolor
+    second: {fileID: 2800000, guid: 647408cdd838ff84399fa5197c5bf734, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Substance_graph_metallic
+    second: {fileID: 2800000, guid: c412e14192ed1fa4da95f598b6de9398, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Substance_graph_normal
+    second: {fileID: 2800000, guid: 3df2962769c25f64584af96ea456a4ee, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Walkway_Diffuse
+    second: {fileID: 2800000, guid: c92e386e78422b24c8bf1b35c31a30e6, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Walkway_Metalness
+    second: {fileID: 2800000, guid: add9894290cd5714db26d63097a1b4fe, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Walkway_Normal
+    second: {fileID: 2800000, guid: 0d3c695682aa90c41a1f670ef88686e4, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: Walkway_Roughness
+    second: {fileID: 2800000, guid: 289b49d3772393841871af0d1d6e8ba2, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: gatepaint_GateRail_BaseColor
+    second: {fileID: 2800000, guid: f5945bbaab0949a48bdd0f6ae25c48e4, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: gatepaint_GateRail_Roughness
+    second: {fileID: 2800000, guid: 5b7b45a218b84884f8e11f033afd4a10, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: office-carpet-fabric_albedo
+    second: {fileID: 2800000, guid: 29aeabd913090d140986ddf373d813d8, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: office-carpet-fabric_normal-ogl
+    second: {fileID: 2800000, guid: 89dd6f8dc509fa24b83fde93ed03a240, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: office-carpet-fabric_roughness
+    second: {fileID: 2800000, guid: d18d531b8f0599e40856fec3a5b0c95b, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: officedoorpaint_OfficeDoorMaterial_BaseColor
+    second: {fileID: 2800000, guid: 8a8eaa6d194ea5e4d9032f217acc2415, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: officedoorpaint_OfficeDoorMaterial_Metallic
+    second: {fileID: 2800000, guid: 392c82a9f552cf4438eeb391b8f01e5a, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: officedoorpaint_OfficeDoorMaterial_Normal
+    second: {fileID: 2800000, guid: 3852fb8535550374c9fc4502fc8f0e44, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: officedoorpaint_OfficeDoorMaterial_Roughness
+    second: {fileID: 2800000, guid: 7b03a334750ac844e88e46f6279342f3, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: officewindowpaint_OfficeWindow_BaseColor
+    second: {fileID: 2800000, guid: f07e9d5ee9573ce4b80f55cfe754b078, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: officewindowpaint_OfficeWindow_Metallic
+    second: {fileID: 2800000, guid: 52707d659b45be34c8baada95ffcb644, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: officewindowpaint_OfficeWindow_Roughness
+    second: {fileID: 2800000, guid: c5c90809b11f1e4448ffac8f8cc33fec, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: rusty metal plate corrugated_albedo
+    second: {fileID: 2800000, guid: 0693d9d56e4df5a439be30a1083a4b37, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: rusty metal plate corrugated_metallic
+    second: {fileID: 2800000, guid: 3bc28329e027411499382fcbc5e36430, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: rusty metal plate corrugated_normal
+    second: {fileID: 2800000, guid: 429a0ae5bab582d438cd7213f75caf2c, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: rusty metal plate corrugated_roughness
+    second: {fileID: 2800000, guid: 52732d2e96986b34da32b7859d6993aa, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: synth-rubber-albedo
+    second: {fileID: 2800000, guid: bccc45cef00aae7459bd2e99ddc013dd, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: synth-rubber-normal
+    second: {fileID: 2800000, guid: a2bcca1210a701141ab6cb9f4749fbec, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: synth-rubber-roughness
+    second: {fileID: 2800000, guid: e9fb4b6147f70ed45b0aae5c958cc15d, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: viyjde3_2K_Albedo
+    second: {fileID: 2800000, guid: 52983d1c923613f41a76195d80d3719e, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: viyjde3_2K_Normal
+    second: {fileID: 2800000, guid: 171703720d40eef4995e7a28324d1474, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: viyjde3_2K_Roughness
+    second: {fileID: 2800000, guid: ea3ca8fc2e11e454b9ce5ac4ca314e2d, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: windowpaint_WarehouseWindow_BaseColor
+    second: {fileID: 2800000, guid: ffa788786be6f9b47808c5c85cc4e367, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: windowpaint_WarehouseWindow_Metallic
+    second: {fileID: 2800000, guid: f6a7a14390806e740b53d3c77c6d6e5f, type: 3}
+  - first:
+      type: UnityEngine:Texture2D
+      assembly: UnityEngine.CoreModule
+      name: windowpaint_WarehouseWindow_Roughness
+    second: {fileID: 2800000, guid: 5bd17ce816df42c4badc54de4b2a83af, type: 3}
+  materials:
+    materialImportMode: 2
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    removeConstantScaleCurves: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 0
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    useSRGBMaterialColor: 1
+    sortHierarchyByName: 1
+    importPhysicalCameras: 1
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    nodeNameCollisionStrategy: 1
+    fileIdsGeneration: 2
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    keepQuads: 0
+    weldVertices: 1
+    bakeAxisConversion: 0
+    preserveHierarchy: 0
+    skinWeightsMode: 0
+    maxBonesPerVertex: 4
+    minBoneWeight: 0.001
+    optimizeBones: 1
+    meshOptimizationFlags: -1
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVMarginMethod: 1
+    secondaryUVMinLightmapResolution: 40
+    secondaryUVMinObjectScale: 1
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    strictVertexDataChecks: 0
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+    legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
+    blendShapeNormalImportMode: 1
+    normalSmoothingSource: 0
+  referencedClips: []
+  importAnimation: 1
+  humanDescription:
+    serializedVersion: 3
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    globalScale: 1
+    rootMotionBoneName: 
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  autoGenerateAvatarMappingIfUnspecified: 1
+  animationType: 2
+  humanoidOversampling: 1
+  avatarSetup: 0
+  addHumanoidExtraRootOnlyWhenUsingAvatar: 1
+  importBlendShapeDeformPercent: 1
+  remapMaterialsIfMaterialImportModeIsNone: 0
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
