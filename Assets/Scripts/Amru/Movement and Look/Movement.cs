@@ -1,5 +1,5 @@
 
-  using System.Collections;
+using System.Collections;
 using UnityEngine;
 
 public class Movement : MonoBehaviour
@@ -32,7 +32,7 @@ public class Movement : MonoBehaviour
     public static bool isMoving;
     private float walkAudioTimer = 0.0f;
     private int currentClipIndex = 0;
-    
+
     // New variable to freeze position
     public bool freezePosition = false;
 
@@ -42,14 +42,30 @@ public class Movement : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
     }
 
-    private void Update()
+    private void Start()
     {
-        if (!freezePosition)
-        {
-            PlayerMovement();
-            PlayFootsteps();
-        }
+
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
+
+
+private void Update()
+{
+    if (Cursor.lockState != CursorLockMode.Locked)
+    {
+        isMoving = false;
+        return;
+    }
+
+    if (!freezePosition)
+    {
+        PlayerMovement();
+        PlayFootsteps();
+    }
+}
+
+
 
     private void PlayerMovement()
     {

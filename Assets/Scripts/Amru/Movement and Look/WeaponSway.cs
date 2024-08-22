@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
 public class WeaponSway : MonoBehaviour
 {
     [Header("Position")]
@@ -29,13 +28,21 @@ public class WeaponSway : MonoBehaviour
     {
         initialPosition = transform.localPosition;
         initialRotation = transform.localRotation;
+
+        // Lock the cursor at the start of the game
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     private void Update()
     {
-        CalculateSway();
-        MoveSway();
-        TiltSway();
+        // Only calculate sway if the cursor is locked
+        if (Cursor.lockState == CursorLockMode.Locked)
+        {
+            CalculateSway();
+            MoveSway();
+            TiltSway();
+        }
     }
 
     private void CalculateSway()
@@ -44,28 +51,27 @@ public class WeaponSway : MonoBehaviour
         inputY = -Input.GetAxis("Mouse Y");
     }
 
-   private void MoveSway()
-{
-    float moveX = Mathf.Clamp(inputX * amount, -maxAmount, maxAmount);
-    float moveY = Mathf.Clamp(inputY * amount, -maxAmount, maxAmount);
+    private void MoveSway()
+    {
+        float moveX = Mathf.Clamp(inputX * amount, -maxAmount, maxAmount);
+        float moveY = Mathf.Clamp(inputY * amount, -maxAmount, maxAmount);
 
-    Vector3 finalPosition = new Vector3(moveX, moveY, 0);
+        Vector3 finalPosition = new Vector3(moveX, moveY, 0);
 
-    transform.localPosition = Vector3.Lerp(transform.localPosition, finalPosition + initialPosition, Time.deltaTime * smoothAmount);
-}
+        transform.localPosition = Vector3.Lerp(transform.localPosition, finalPosition + initialPosition, Time.deltaTime * smoothAmount);
+    }
 
-private void TiltSway()
-{
-    float tiltY = Mathf.Clamp(inputX * rotationAmount, -maxRotationAmount, maxRotationAmount);
-    float tiltX = Mathf.Clamp(inputY * rotationAmount, -maxRotationAmount, maxRotationAmount);
+    private void TiltSway()
+    {
+        float tiltY = Mathf.Clamp(inputX * rotationAmount, -maxRotationAmount, maxRotationAmount);
+        float tiltX = Mathf.Clamp(inputY * rotationAmount, -maxRotationAmount, maxRotationAmount);
 
-    Quaternion finalRotation = Quaternion.Euler(new Vector3(
-        rotationX ? -tiltX : 0f,
-        rotationY ? tiltY : 0f,
-        rotationZ ? tiltY : 0
-    ));
+        Quaternion finalRotation = Quaternion.Euler(new Vector3(
+            rotationX ? -tiltX : 0f,
+            rotationY ? tiltY : 0f,
+            rotationZ ? tiltY : 0
+        ));
 
-    transform.localRotation = Quaternion.Slerp(transform.localRotation, finalRotation * initialRotation, Time.deltaTime * smoothRotation);
-}
-
+        transform.localRotation = Quaternion.Slerp(transform.localRotation, finalRotation * initialRotation, Time.deltaTime * smoothRotation);
+    }
 }

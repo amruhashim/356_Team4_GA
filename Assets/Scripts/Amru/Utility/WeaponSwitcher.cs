@@ -2,7 +2,7 @@ using UnityEngine;
 using Cinemachine;
 using System.Collections.Generic;
 using UnityEngine.AI;
-
+using TMPro;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -26,9 +26,14 @@ public class WeaponSwitcher : MonoBehaviour
     public CinemachineVirtualCamera droneCamera;
     public Movement playerMovement;
     public Camera mainCamera;
-  
+ public TextMeshProUGUI outOfRangeText;
 
-   
+   [Header("Spotlight Settings")]
+    public float outOfRangeIntensity = 10f; // Intensity when out of range
+    private float defaultIntensity = 0f;
+  public Light warningSpotlight;
+
+
     private GameObject droneInstance;
     private bool isGrenadeActive = false;
     private bool isDroneActive = false;
@@ -43,7 +48,7 @@ public class WeaponSwitcher : MonoBehaviour
     public string grenadeWeaponID; // ID for the grenade hand
 
     private Dictionary<string, GameObject> weaponDictionary;
-private CharacterController characterController;
+    private CharacterController characterController;
     private void Start()
     {
         if (mainCamera == null)
@@ -53,7 +58,7 @@ private CharacterController characterController;
         characterController = GetComponent<CharacterController>();
         playerCamera.Priority = 10;
         droneCamera.Priority = 0;
-
+        outOfRangeText.gameObject.SetActive(false);
         weaponDictionary = new Dictionary<string, GameObject>();
         foreach (var entry in weaponEntries)
         {
@@ -80,42 +85,55 @@ private CharacterController characterController;
         }
     }
 
-private void Update()
-{
-     HandleInput();
-    if (isDroneActive)
+    private void Update()
     {
-        CheckPlayerDistance();
-    }
-}
-
-public float timeOutOfRange = 0f; // Current time out of range
-public float maxTimeOutOfRange = 2f; // 2 seconds out of range allowed
-public float maxDistance = 200f; // Maximum allowed distance between drone and player
-
-private void CheckPlayerDistance()
-{
-    Vector3 playerPosition = characterController.transform.position;
-    Vector3 dronePosition = droneInstance.transform.position;
-
-    float distanceToPlayer = Vector3.SqrMagnitude(dronePosition - playerPosition);
-
-    float maxDistanceSquared = maxDistance * maxDistance; // Square maxDistance for correct comparison
-
-    if (distanceToPlayer > maxDistanceSquared)
-    {
-        timeOutOfRange += Time.deltaTime; // Accumulate timer normally
-        if (timeOutOfRange >= maxTimeOutOfRange)
+        HandleInput();
+        if (isDroneActive)
         {
-            Debug.Log("Player out of range for too long. Toggling drone off.");
-            ToggleDrone();
+            CheckPlayerDistance();
         }
     }
-    else
+
+    public float timeOutOfRange = 0f; // Current time out of range
+    public float maxTimeOutOfRange = 2f; // 2 seconds out of range allowed
+    public float maxDistance = 200f; // Maximum allowed distance between drone and player
+
+ private void CheckPlayerDistance()
     {
-        timeOutOfRange = 0f; // Reset timer if player is within range
+        Vector3 playerPosition = characterController.transform.position;
+        Vector3 dronePosition = droneInstance.transform.position;
+
+        float distanceToPlayer = Vector3.SqrMagnitude(dronePosition - playerPosition);
+        float maxDistanceSquared = maxDistance * maxDistance;
+
+        if (distanceToPlayer > maxDistanceSquared)
+        {
+            timeOutOfRange += Time.deltaTime;
+
+            // Show the out-of-range text with the countdown timer
+            outOfRangeText.gameObject.SetActive(true);
+            float timeRemaining = maxTimeOutOfRange - timeOutOfRange;
+            outOfRangeText.text = $"Losing Range! Return to Range in {timeRemaining:F1} seconds!";
+
+            // Set spotlight intensity to the out-of-range value
+            warningSpotlight.intensity = outOfRangeIntensity;
+
+            if (timeOutOfRange >= maxTimeOutOfRange)
+            {
+                Debug.Log("Player out of range for too long. Toggling drone off.");
+                ToggleDrone();
+                outOfRangeText.gameObject.SetActive(false);
+                warningSpotlight.intensity = defaultIntensity; // Reset intensity when drone toggled off
+            }
+        }
+        else
+        {
+            timeOutOfRange = 0f;
+            outOfRangeText.gameObject.SetActive(false); // Hide text when within range
+            warningSpotlight.intensity = defaultIntensity; // Set spotlight intensity to 0 when in range
+        }
     }
-}
+
 
 
     private void HandleInput()
@@ -206,40 +224,40 @@ private void CheckPlayerDistance()
         AmmoManager.Instance.grenadeDisplay.gameObject.SetActive(false);
     }
 
-private void SwitchToGrenadeHand()
-{
-    // Destroy the existing grenade hand instance if it exists
-    if (grenadeHandInstance != null)
+    private void SwitchToGrenadeHand()
     {
-        Destroy(grenadeHandInstance);
+        // Destroy the existing grenade hand instance if it exists
+        if (grenadeHandInstance != null)
+        {
+            Destroy(grenadeHandInstance);
+        }
+
+        // Create a new grenade hand instance
+        grenadeHandInstance = Instantiate(weaponDictionary[grenadeWeaponID], handHolder);
+        grenadeHandInstance.transform.localPosition = new Vector3(0, -1.45899999f, -0.479999989f);
+        grenadeHandInstance.transform.localRotation = Quaternion.identity;
+
+        // Assign the movement script to the grenade hand's animation controller
+        AnimationController grenadeAnimationController = grenadeHandInstance.GetComponent<AnimationController>();
+        if (grenadeAnimationController != null)
+        {
+            grenadeAnimationController.movementScript = playerMovement;
+        }
+
+        // Deactivate the current weapon if it exists
+        if (currentWeapon != null)
+        {
+            currentWeapon.gameObject.SetActive(false);
+        }
+
+        // Activate the grenade hand and update the UI
+        grenadeHandInstance.SetActive(true);
+        isGrenadeActive = true;
+
+        AmmoManager.Instance.ammoDisplay.gameObject.SetActive(false);
+        AmmoManager.Instance.grenadeDisplay.gameObject.SetActive(true);
+        AmmoManager.Instance.UpdateGrenadeDisplay(PlayerState.Instance.grenadeCount);
     }
-
-    // Create a new grenade hand instance
-    grenadeHandInstance = Instantiate(weaponDictionary[grenadeWeaponID], handHolder);
-    grenadeHandInstance.transform.localPosition = new Vector3(0, -1.45899999f, -0.479999989f);
-    grenadeHandInstance.transform.localRotation = Quaternion.identity;
-
-    // Assign the movement script to the grenade hand's animation controller
-    AnimationController grenadeAnimationController = grenadeHandInstance.GetComponent<AnimationController>();
-    if (grenadeAnimationController != null)
-    {
-        grenadeAnimationController.movementScript = playerMovement;
-    }
-
-    // Deactivate the current weapon if it exists
-    if (currentWeapon != null)
-    {
-        currentWeapon.gameObject.SetActive(false);
-    }
-
-    // Activate the grenade hand and update the UI
-    grenadeHandInstance.SetActive(true);
-    isGrenadeActive = true;
-
-    AmmoManager.Instance.ammoDisplay.gameObject.SetActive(false);
-    AmmoManager.Instance.grenadeDisplay.gameObject.SetActive(true);
-    AmmoManager.Instance.UpdateGrenadeDisplay(PlayerState.Instance.grenadeCount);
-}
 
 
     private void SwitchToCurrentWeapon()
@@ -260,16 +278,18 @@ private void SwitchToGrenadeHand()
         AmmoManager.Instance.grenadeDisplay.gameObject.SetActive(false);
         AmmoManager.Instance.UpdateGrenadeDisplay(PlayerState.Instance.grenadeCount);
     }
-private void ToggleDrone()
+    private void ToggleDrone()
 {
     if (isDroneActive)
     {
+        // Destroy the drone and reset cameras
         Destroy(droneInstance);
         droneCamera.Priority = 0;
         playerCamera.Priority = 10;
         droneCamera.Follow = null;
         droneCamera.LookAt = null;
 
+        // Enable objects and scripts that were disabled
         foreach (GameObject obj in objectsToDisable)
         {
             obj.SetActive(true);
@@ -280,8 +300,14 @@ private void ToggleDrone()
             script.enabled = true;
         }
 
-        playerMovement.freezePosition = false;  // Unfreeze player movement
+        // Reset player movement
+        playerMovement.freezePosition = false;
         isDroneActive = false;
+
+        // Reset the warning text and spotlight
+        outOfRangeText.gameObject.SetActive(false);
+        warningSpotlight.intensity = defaultIntensity;
+        timeOutOfRange = 0f; // Reset the out-of-range timer
     }
     else
     {
@@ -293,15 +319,17 @@ private void ToggleDrone()
 
             if (Physics.Raycast(ray, out hit, 10f, LayerMask.GetMask("Ground")))
             {
-                spawnPosition = hit.point;
+                  spawnPosition = hit.point + Vector3.up * 1.0f;
                 droneInstance = Instantiate(dronePrefab, spawnPosition, Quaternion.identity);
                 droneInstance.GetComponent<DroneMovement>().SetInitialRotation(playerCamera.transform.forward);
 
+                // Switch to the drone camera
                 droneCamera.Priority = 10;
                 playerCamera.Priority = 0;
                 droneCamera.Follow = droneInstance.transform;
                 droneCamera.LookAt = droneInstance.transform;
 
+                // Disable objects and scripts related to the player
                 foreach (GameObject obj in objectsToDisable)
                 {
                     obj.SetActive(false);
@@ -312,7 +340,8 @@ private void ToggleDrone()
                     script.enabled = false;
                 }
 
-                playerMovement.freezePosition = true;  // Freeze player movement
+                // Freeze player movement
+                playerMovement.freezePosition = true;
                 isDroneActive = true;
             }
             else
@@ -322,6 +351,7 @@ private void ToggleDrone()
         }
     }
 }
+
 
 
 
@@ -342,39 +372,36 @@ private void ToggleDrone()
 
 
 #if UNITY_EDITOR
-private void OnDrawGizmosSelected()
-{
-    if (droneInstance != null && PlayerState.Instance != null)
+    private void OnDrawGizmos()
     {
-        Vector3 playerPosition = PlayerState.Instance.playerTransform.position;
-        Vector3 dronePosition = droneInstance.transform.position;
+        
+            Vector3 playerPosition = PlayerState.Instance.playerTransform.position;
 
-        // Draw the max distance range as a sphere
-        Gizmos.color = new Color(0f, 1f, 0f, 0.2f); // Semi-transparent green
-        Gizmos.DrawSphere(playerPosition, maxDistance);
+            // Draw the max distance range as a wireframe sphere
+            Gizmos.color = new Color(0f, 1f, 0f, 0.5f); // Semi-transparent green
+            Gizmos.DrawWireSphere(playerPosition, maxDistance);
 
-        // Draw a line between the player and the drone
-        Gizmos.color = Vector3.Distance(dronePosition, playerPosition) > maxDistance ? Color.red : Color.green;
-        Gizmos.DrawLine(dronePosition, playerPosition);
+            // Mark the player's position
+            Gizmos.color = Color.green;
+            Gizmos.DrawSphere(playerPosition, 0.3f); // Draw a small sphere at the player's position
+        
 
-        // Mark the player's position
-        Gizmos.color = Color.green;
-        Gizmos.DrawSphere(playerPosition, 0.3f); // Draw a sphere at the player's position
-    }
-    else
-    {
-        // Draw a line from the drone spawner to the ground
-        Vector3 spawnPosition = droneSpawner.position;
-        Ray ray = new Ray(spawnPosition, Vector3.down);
-        RaycastHit hit;
-
-        if (Physics.Raycast(ray, out hit, 10f, LayerMask.GetMask("Ground")))
+        if (droneSpawner != null)
         {
-            Gizmos.color = Color.blue;
-            Gizmos.DrawLine(spawnPosition, hit.point);
+            // Draw a line from the drone spawner to the ground
+            Vector3 spawnPosition = droneSpawner.position;
+            Ray ray = new Ray(spawnPosition, Vector3.down);
+            RaycastHit hit;
+
+            if (Physics.Raycast(ray, out hit, 10f, LayerMask.GetMask("Ground")))
+            {
+                Gizmos.color = Color.blue;
+                Gizmos.DrawLine(spawnPosition, hit.point);
+            }
         }
     }
-}
 #endif
+
+
 
 }

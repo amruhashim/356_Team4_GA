@@ -68,26 +68,32 @@ public class Weapon : MonoBehaviour
         readyToShoot = true;
         audioSource = GetComponent<AudioSource>();
     }
+private void Start()
+{
+    animatorController = GetComponent<AnimationController>();
 
-    private void Start()
+    // Lock the cursor at the start of the game
+    Cursor.lockState = CursorLockMode.Locked;
+    Cursor.visible = false;
+}
+
+
+private void Update()
+{
+    // Only process input if the cursor is locked
+    if (Cursor.lockState != CursorLockMode.Locked)
+        return;
+
+    HandleShootingInput();
+
+    if (Input.GetKeyDown(KeyCode.R) && bulletsLeft < magazineSize && !isReloading && accumulatedBullets > 0)
     {
-        animatorController = GetComponent<AnimationController>();
+        Reload();
     }
 
-    private void Update()
-    {
-        if (Cursor.lockState != CursorLockMode.Locked)
-            return;
+    UpdateAmmoDisplay();
+}
 
-        HandleShootingInput();
-
-        if (Input.GetKeyDown(KeyCode.R) && bulletsLeft < magazineSize && !isReloading && accumulatedBullets > 0)
-        {
-            Reload();
-        }
-
-        UpdateAmmoDisplay();
-    }
 
     #endregion
 
