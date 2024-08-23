@@ -372,36 +372,34 @@ public class WeaponSwitcher : MonoBehaviour
 
 
 #if UNITY_EDITOR
-    private void OnDrawGizmos()
+private void OnDrawGizmos()
+{
+    if (characterController != null)
     {
-        
-            Vector3 playerPosition = PlayerState.Instance.playerTransform.position;
+        Vector3 playerPosition = characterController.transform.position;
 
-            // Draw the max distance range as a wireframe sphere
-            Gizmos.color = new Color(0f, 1f, 0f, 0.5f); // Semi-transparent green
-            Gizmos.DrawWireSphere(playerPosition, maxDistance);
+        // Draw the max distance range as a wireframe sphere
+        Gizmos.color = new Color(0f, 1f, 0f, 0.5f); // Semi-transparent green
+        Gizmos.DrawWireSphere(playerPosition, maxDistance);
 
-            // Mark the player's position
-            Gizmos.color = Color.green;
-            Gizmos.DrawSphere(playerPosition, 0.3f); // Draw a small sphere at the player's position
-        
+        // Mark the player's position
+        Gizmos.color = Color.green;
+        Gizmos.DrawSphere(playerPosition, 0.3f); // Draw a small sphere at the player's position
+    }
 
-        if (droneSpawner != null)
+    if (droneSpawner != null)
+    {
+        // Draw a line from the drone spawner to the ground
+        Vector3 spawnPosition = droneSpawner.position;
+        Ray ray = new Ray(spawnPosition, Vector3.down);
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, 10f, LayerMask.GetMask("Ground")))
         {
-            // Draw a line from the drone spawner to the ground
-            Vector3 spawnPosition = droneSpawner.position;
-            Ray ray = new Ray(spawnPosition, Vector3.down);
-            RaycastHit hit;
-
-            if (Physics.Raycast(ray, out hit, 10f, LayerMask.GetMask("Ground")))
-            {
-                Gizmos.color = Color.blue;
-                Gizmos.DrawLine(spawnPosition, hit.point);
-            }
+            Gizmos.color = Color.blue;
+            Gizmos.DrawLine(spawnPosition, hit.point);
         }
     }
+}
 #endif
-
-
-
 }
