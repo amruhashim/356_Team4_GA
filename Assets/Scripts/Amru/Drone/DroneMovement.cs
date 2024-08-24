@@ -4,214 +4,229 @@ using UnityEngine;
 
 public class DroneMovement : MonoBehaviour
 {
-    Rigidbody ourDrone;
-    private AudioSource droneSound;
+    // Drone components
+    private Rigidbody droneRigidbody;
+    private AudioSource droneAudioSource;
 
-    public Transform[] motors; 
-    public float baseRotationSpeed = 500.0f; 
-    public float rotationMultiplier = 1.2f;
-    private float currentMotorSpeed = 0.0f;
+    // Motor settings
+    [SerializeField] private Transform[] droneMotors; 
+    [SerializeField] private float motorBaseRotationSpeed = 500.0f; 
+    [SerializeField] private float motorRotationMultiplier = 1.2f;
+    private float currentMotorRotationSpeed = 0.0f;
+
+    // Movement settings
+    [SerializeField] private float verticalForce;
+    [SerializeField] private float forwardMovementSpeed = 500.0f;
+    private float forwardTiltAmount = 0;
+    private float forwardTiltVelocity;
+
+    // Rotation settings
+    private float targetYRotation;
+    private float currentYRotation;
+    [SerializeField] private float rotationSensitivity = 2.5f;
+    private float rotationSmoothVelocity;
+
+    // Velocity control
+    private Vector3 smoothedVelocity;
+
+    // Side movement settings
+    [SerializeField] private float sidewaysMovementSpeed = 200.0f;
+    private float sidewaysTiltAmount = 0;
+    private float sidewaysTiltVelocity;
 
     void Awake()
     {
-        ourDrone = GetComponent<Rigidbody>();
-        droneSound = gameObject.transform.Find("DroneSound").GetComponent<AudioSource>();
+        // Initialize drone components
+        droneRigidbody = GetComponent<Rigidbody>();
+        droneAudioSource = gameObject.transform.Find("DroneSound").GetComponent<AudioSource>();
+
+        // Lock the cursor
         if (Cursor.lockState != CursorLockMode.Locked)
         {
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
         }
     }
-  
+
     void FixedUpdate()
     {
-        MovementUpDown();
-        MovementForward();
-        Rotation();
-        ClampingSpeedValues();
-        Swerve();
-        DroneSound();
-        RotateMotors();
+        // Handle drone movements and rotations
+        HandleVerticalMovement();
+        HandleForwardMovement();
+        HandleRotation();
+        ClampVelocityValues();
+        HandleSidewaysMovement();
+        UpdateDroneSound();
+        RotateDroneMotors();
 
-        ourDrone.AddRelativeForce(Vector3.up * upForce);
-        ourDrone.rotation = Quaternion.Euler(
-            new Vector3(tiltAmountForward, currentYRotation, tiltAmountSideways)
+        // Apply movement and rotation
+        droneRigidbody.AddRelativeForce(Vector3.up * verticalForce);
+        droneRigidbody.rotation = Quaternion.Euler(
+            new Vector3(forwardTiltAmount, currentYRotation, sidewaysTiltAmount)
         );
     }
 
-    public float upForce;
-    void MovementUpDown()
+    // Handles vertical movement (up and down)
+    void HandleVerticalMovement()
     {
         if (Mathf.Abs(Input.GetAxis("Vertical")) > 0.2f || Mathf.Abs(Input.GetAxis("Horizontal")) > 0.2f) 
         {
-        if (Input.GetKey(KeyCode.I) || Input.GetKey(KeyCode.K)) {
-            ourDrone.velocity = ourDrone.velocity;
-        }
-        if (Input.GetKey(KeyCode.I) && Input.GetKey(KeyCode.K) && Input.GetKey(KeyCode.J) && Input.GetKey(KeyCode.L)) {
-            ourDrone.velocity = new Vector3(ourDrone.velocity.x, Mathf.Lerp(ourDrone.velocity.y, 0, Time.deltaTime * 5), ourDrone.velocity.z);
-            upForce = 281;
-        }
-        if (Input.GetKey(KeyCode.I) && Input.GetKey(KeyCode.K) && Input.GetKey(KeyCode.J) && Input.GetKey(KeyCode.L)) {
-            ourDrone.velocity = new Vector3(ourDrone.velocity.x, Mathf.Lerp(ourDrone.velocity.y, 0, Time.deltaTime * 5), ourDrone.velocity.z);
-            upForce = 110;
-        }
-        if (Input.GetKey(KeyCode.J) || Input.GetKey(KeyCode.L)) {
-            upForce = 410;
-        }
+            if (Input.GetKey(KeyCode.I) || Input.GetKey(KeyCode.K)) {
+                droneRigidbody.velocity = droneRigidbody.velocity;
+            }
+            if (Input.GetKey(KeyCode.I) && Input.GetKey(KeyCode.K) && Input.GetKey(KeyCode.J) && Input.GetKey(KeyCode.L)) {
+                droneRigidbody.velocity = new Vector3(droneRigidbody.velocity.x, Mathf.Lerp(droneRigidbody.velocity.y, 0, Time.deltaTime * 5), droneRigidbody.velocity.z);
+                verticalForce = 281;
+            }
+            if (Input.GetKey(KeyCode.I) && Input.GetKey(KeyCode.K) && Input.GetKey(KeyCode.J) && Input.GetKey(KeyCode.L)) {
+                droneRigidbody.velocity = new Vector3(droneRigidbody.velocity.x, Mathf.Lerp(droneRigidbody.velocity.y, 0, Time.deltaTime * 5), droneRigidbody.velocity.z);
+                verticalForce = 110;
+            }
+            if (Input.GetKey(KeyCode.J) || Input.GetKey(KeyCode.L)) {
+                verticalForce = 410;
+            }
         }
 
         if (Mathf.Abs(Input.GetAxis("Vertical")) < 0.2f && Mathf.Abs(Input.GetAxis("Horizontal")) < 0.2f)
         {
-            upForce = 135;
+            verticalForce = 135;
         }
 
         if (Input.GetKey(KeyCode.Space)) // Upward movement
         {
-            upForce = 450;
+            verticalForce = 450;
             if (Mathf.Abs(Input.GetAxis("Horizontal")) > 0.2f)
             {
-                upForce = 500;
+                verticalForce = 500;
             }
         }
         else if (Input.GetKey(KeyCode.LeftShift)) // Downward movement
         {
-            upForce = -200;
+            verticalForce = -200;
         }
         else if (!Input.GetKey(KeyCode.Space) && !Input.GetKey(KeyCode.LeftShift) && (Mathf.Abs(Input.GetAxis("Vertical")) < 0.2f && Mathf.Abs(Input.GetAxis("Horizontal")) < 0.2f))
         {
-            upForce = 98.1f;
+            verticalForce = 98.1f;
         }
     }
 
-    private float movementForwardSpeed = 500.0f;
-    private float tiltAmountForward = 0;
-    private float tiltVelocityForward;
-
-    void MovementForward()
+    // Handles forward and backward movement
+    void HandleForwardMovement()
     {
         if (Input.GetAxis("Vertical") != 0)
         {
-            float forwardForce = Input.GetAxis("Vertical") * movementForwardSpeed;
-            ourDrone.AddRelativeForce(Vector3.forward * forwardForce);
+            float forwardForce = Input.GetAxis("Vertical") * forwardMovementSpeed;
+            droneRigidbody.AddRelativeForce(Vector3.forward * forwardForce);
 
             // Maintain altitude by counteracting the downward force caused by tilt
-            float altitudeCompensation = ourDrone.velocity.y;
-            ourDrone.AddRelativeForce(Vector3.up * -altitudeCompensation, ForceMode.VelocityChange);
+            float altitudeCompensation = droneRigidbody.velocity.y;
+            droneRigidbody.AddRelativeForce(Vector3.up * -altitudeCompensation, ForceMode.VelocityChange);
 
             // Apply tilt for visual effect
-            tiltAmountForward = Mathf.SmoothDamp(tiltAmountForward, 20 * Input.GetAxis("Vertical"), ref tiltVelocityForward, 0.1f);
+            forwardTiltAmount = Mathf.SmoothDamp(forwardTiltAmount, 20 * Input.GetAxis("Vertical"), ref forwardTiltVelocity, 0.1f);
         }
         else
         {
             // Apply drag when no input is detected
-            float dragForce = -ourDrone.velocity.z * 5f;
-            ourDrone.AddRelativeForce(Vector3.forward * dragForce);
+            float dragForce = -droneRigidbody.velocity.z * 5f;
+            droneRigidbody.AddRelativeForce(Vector3.forward * dragForce);
 
             // Smoothly reduce tilt amount to zero
-            tiltAmountForward = Mathf.SmoothDamp(tiltAmountForward, 0, ref tiltVelocityForward, 0.1f);
+            forwardTiltAmount = Mathf.SmoothDamp(forwardTiltAmount, 0, ref forwardTiltVelocity, 0.1f);
 
             // Gradually reduce the velocity in the forward direction
-            ourDrone.velocity = new Vector3(ourDrone.velocity.x, ourDrone.velocity.y, Mathf.Lerp(ourDrone.velocity.z, 0, Time.deltaTime * 2f));
+            droneRigidbody.velocity = new Vector3(droneRigidbody.velocity.x, droneRigidbody.velocity.y, Mathf.Lerp(droneRigidbody.velocity.z, 0, Time.deltaTime * 2f));
         }
     }
 
-
-
-    private float wantedYRotation;
-    public float currentYRotation;
-    private float rotateAmountByKeys = 2.5f;
-    private float rotationYVelocity;
-
-    void Rotation()
+    // Handles drone rotation based on mouse and keys
+    void HandleRotation()
     {
         // Mouse rotation
         float mouseX = Input.GetAxis("Mouse X");
-        wantedYRotation += mouseX * rotateAmountByKeys;
+        targetYRotation += mouseX * rotationSensitivity;
 
         if (Input.GetKey(KeyCode.J))
         {
-            wantedYRotation -= rotateAmountByKeys;
+            targetYRotation -= rotationSensitivity;
         }
         if (Input.GetKey(KeyCode.L))
         {
-            wantedYRotation += rotateAmountByKeys;
+            targetYRotation += rotationSensitivity;
         }
 
-        currentYRotation = Mathf.SmoothDamp(currentYRotation, wantedYRotation, ref rotationYVelocity, 0.25f);
+        currentYRotation = Mathf.SmoothDamp(currentYRotation, targetYRotation, ref rotationSmoothVelocity, 0.25f);
     }
 
-    private Vector3 velocityToSmoothDampToZero;
-
-    void ClampingSpeedValues()
+    // Clamps velocity values to avoid excessive speeds
+    void ClampVelocityValues()
     {
         if (Mathf.Abs(Input.GetAxis("Vertical")) > 0.2f || Mathf.Abs(Input.GetAxis("Horizontal")) > 0.2f)
         {
-            ourDrone.velocity = Vector3.Lerp(ourDrone.velocity, Vector3.ClampMagnitude(ourDrone.velocity, 10.0f), Time.deltaTime * 5f);
+            droneRigidbody.velocity = Vector3.Lerp(droneRigidbody.velocity, Vector3.ClampMagnitude(droneRigidbody.velocity, 10.0f), Time.deltaTime * 5f);
         }
 
         if (Mathf.Abs(Input.GetAxis("Vertical")) < 0.2f && Mathf.Abs(Input.GetAxis("Horizontal")) < 0.2f)
         {
-            ourDrone.velocity = Vector3.Lerp(ourDrone.velocity, Vector3.ClampMagnitude(ourDrone.velocity, 5.0f), Time.deltaTime * 5f);
+            droneRigidbody.velocity = Vector3.Lerp(droneRigidbody.velocity, Vector3.ClampMagnitude(droneRigidbody.velocity, 5.0f), Time.deltaTime * 5f);
         }
 
         if (Mathf.Abs(Input.GetAxis("Vertical")) < 0.2f && Mathf.Abs(Input.GetAxis("Horizontal")) < 0.2f)
         {
-            ourDrone.velocity = Vector3.SmoothDamp(ourDrone.velocity, Vector3.zero, ref velocityToSmoothDampToZero, 0.95f);
+            droneRigidbody.velocity = Vector3.SmoothDamp(droneRigidbody.velocity, Vector3.zero, ref smoothedVelocity, 0.95f);
         }
     }
 
-    private float sideMovementAmount = 200.0f;
-    private float tiltAmountSideways = 0;
-    private float tiltAmountVelocity;
-
-    void Swerve()
+    // Handles sideways (lateral) movement
+    void HandleSidewaysMovement()
     {
         if (Mathf.Abs(Input.GetAxis("Horizontal")) > 0.2f)
         {
-            ourDrone.AddRelativeForce(Vector3.right * Input.GetAxis("Horizontal") * sideMovementAmount);
-            tiltAmountSideways = Mathf.SmoothDamp(tiltAmountSideways, -1 * Input.GetAxis("Horizontal"), ref tiltAmountVelocity, 0.1f);
+            droneRigidbody.AddRelativeForce(Vector3.right * Input.GetAxis("Horizontal") * sidewaysMovementSpeed);
+            sidewaysTiltAmount = Mathf.SmoothDamp(sidewaysTiltAmount, -1 * Input.GetAxis("Horizontal"), ref sidewaysTiltVelocity, 0.1f);
         }
         else
         {
-            tiltAmountSideways = Mathf.SmoothDamp(tiltAmountSideways, 0, ref tiltAmountVelocity, 0.1f);
+            sidewaysTiltAmount = Mathf.SmoothDamp(sidewaysTiltAmount, 0, ref sidewaysTiltVelocity, 0.1f);
         }
     }
 
-    void DroneSound()
+    // Updates the drone sound based on velocity
+    void UpdateDroneSound()
     {
-        droneSound.pitch = 1 + (ourDrone.velocity.magnitude / 100);
+        droneAudioSource.pitch = 1 + (droneRigidbody.velocity.magnitude / 100);
     }
 
-    // In DroneMovement script
-public void SetInitialRotation(Vector3 direction)
-{
-    wantedYRotation = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
-    currentYRotation = wantedYRotation;
-    transform.rotation = Quaternion.Euler(0, currentYRotation, 0);
-}
+    // Sets the initial rotation of the drone
+    public void SetInitialRotation(Vector3 direction)
+    {
+        targetYRotation = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg;
+        currentYRotation = targetYRotation;
+        transform.rotation = Quaternion.Euler(0, currentYRotation, 0);
+    }
 
-
-    void RotateMotors()
+    // Rotates the drone motors based on current movement
+    void RotateDroneMotors()
     {
         // Start with base rotation speed
-        currentMotorSpeed = baseRotationSpeed;
+        currentMotorRotationSpeed = motorBaseRotationSpeed;
 
         // Increase motor speed if moving up, forward, or sideways
         if (Input.GetKey(KeyCode.Space) || Mathf.Abs(Input.GetAxis("Vertical")) > 0.1f || Mathf.Abs(Input.GetAxis("Horizontal")) > 0.1f)
         {
-            currentMotorSpeed *= rotationMultiplier; // Increase rotation speed
+            currentMotorRotationSpeed *= motorRotationMultiplier; // Increase rotation speed
         }
 
         // Decrease motor speed if moving down
         if (Input.GetKey(KeyCode.LeftShift))
         {
-            currentMotorSpeed /= rotationMultiplier; // Decrease rotation speed
+            currentMotorRotationSpeed /= motorRotationMultiplier; // Decrease rotation speed
         }
 
         // Apply rotation to each motor on the Z-axis
-        foreach (var motor in motors)
+        foreach (var motor in droneMotors)
         {
-            motor.Rotate(Vector3.forward, currentMotorSpeed * Time.deltaTime, Space.Self);
+            motor.Rotate(Vector3.forward, currentMotorRotationSpeed * Time.deltaTime, Space.Self);
         }
     }
 }
