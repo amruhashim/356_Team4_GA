@@ -20,6 +20,11 @@ public class DroneMovement : MonoBehaviour
     private float forwardTiltAmount = 0;
     private float forwardTiltVelocity;
 
+    // Up and down force settings
+    [SerializeField] private float upwardForce = 450f;  // Adjustable upward force
+    [SerializeField] private float downwardForce = -200f;  // Adjustable downward force
+    [SerializeField] private float hoverForce = 98.1f;  // Adjustable hover force
+
     // Rotation settings
     private float targetYRotation;
     private float currentYRotation;
@@ -89,24 +94,24 @@ public class DroneMovement : MonoBehaviour
 
         if (Mathf.Abs(Input.GetAxis("Vertical")) < 0.2f && Mathf.Abs(Input.GetAxis("Horizontal")) < 0.2f)
         {
-            verticalForce = 135;
+            verticalForce = hoverForce;  // Adjustable hover force
         }
 
         if (Input.GetKey(KeyCode.Space)) // Upward movement
         {
-            verticalForce = 450;
+            verticalForce = upwardForce;  // Use adjustable upward force
             if (Mathf.Abs(Input.GetAxis("Horizontal")) > 0.2f)
             {
-                verticalForce = 500;
+                verticalForce = upwardForce + 50f;  // Increase if moving horizontally
             }
         }
         else if (Input.GetKey(KeyCode.LeftShift)) // Downward movement
         {
-            verticalForce = -200;
+            verticalForce = downwardForce;  // Use adjustable downward force
         }
         else if (!Input.GetKey(KeyCode.Space) && !Input.GetKey(KeyCode.LeftShift) && (Mathf.Abs(Input.GetAxis("Vertical")) < 0.2f && Mathf.Abs(Input.GetAxis("Horizontal")) < 0.2f))
         {
-            verticalForce = 98.1f;
+            verticalForce = hoverForce;  // Use adjustable hover force
         }
     }
 
