@@ -95,7 +95,7 @@ public class SaveManager : MonoBehaviour
         Debug.Log($"sensitivityJsonPathProject: {sensitivityJsonPathProject}");
         Debug.Log($"sensitivityJsonPathPersistent: {sensitivityJsonPathPersistent}");
         Debug.Log($"sensitivityBinaryPath: {sensitivityBinaryPath}");
-    }
+    } 
 
     private void InitializeSettingsFiles()
     {
