@@ -37,10 +37,23 @@ public class AnimationController : MonoBehaviour
         animator.SetBool("isWalking", isWalking);
     }
 
-    public void SetShooting(bool isShooting)
+
+    public void TriggerShoot()
     {
-        animator.SetBool("isShooting", isShooting);
+        animator.SetTrigger("Shoot");
     }
+
+    
+ public void TriggerLeftClickAttack()
+{
+    animator.SetTrigger("LeftClickAttack");
+}
+
+public void TriggerRightClickAttack()
+{
+    animator.SetTrigger("RightClickAttack");
+}
+
 
     public void SetReloading(bool isReloading)
     {

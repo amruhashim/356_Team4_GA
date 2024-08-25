@@ -53,7 +53,7 @@ public class Weapon : MonoBehaviour
     {
         HandGun,
         ShotGun,
-        MachineGun,
+        MachineGun
     }
 
     private bool hasPlayedEmptySound = false;
@@ -68,32 +68,31 @@ public class Weapon : MonoBehaviour
         readyToShoot = true;
         audioSource = GetComponent<AudioSource>();
     }
-private void Start()
-{
-    animatorController = GetComponent<AnimationController>();
 
-    // Lock the cursor at the start of the game
-    Cursor.lockState = CursorLockMode.Locked;
-    Cursor.visible = false;
-}
-
-
-private void Update()
-{
-    // Only process input if the cursor is locked
-    if (Cursor.lockState != CursorLockMode.Locked)
-        return;
-
-    HandleShootingInput();
-
-    if (Input.GetKeyDown(KeyCode.R) && bulletsLeft < magazineSize && !isReloading && accumulatedBullets > 0)
+    private void Start()
     {
-        Reload();
+        animatorController = GetComponent<AnimationController>();
+
+        // Lock the cursor at the start of the game
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
-    UpdateAmmoDisplay();
-}
+    private void Update()
+    {
+        // Only process input if the cursor is locked
+        if (Cursor.lockState != CursorLockMode.Locked)
+            return;
 
+        HandleShootingInput();
+
+        if (Input.GetKeyDown(KeyCode.R) && bulletsLeft < magazineSize && !isReloading && accumulatedBullets > 0)
+        {
+            Reload();
+        }
+
+        UpdateAmmoDisplay();
+    }
 
     #endregion
 
@@ -141,7 +140,7 @@ private void Update()
         if (GunType == gunType.ShotGun)
         {
             PlayShootingSound();
-            animatorController.SetShooting(true);
+            animatorController.TriggerShoot();  // Use trigger for shooting
             for (int i = 0; i < bulletsPerShot; i++)
             {
                 FireBullet();
@@ -156,7 +155,7 @@ private void Update()
         else // HandGun
         {
             PlayShootingSound();
-            animatorController.SetShooting(true);
+            animatorController.TriggerShoot();  // Use trigger for shooting
             FireBullet();
             bulletsLeft--;
             Invoke("ResetShot", shootingDelay);
@@ -172,7 +171,7 @@ private void Update()
         while (isShooting && bulletsLeft > 0 && !isReloading)
         {
             PlayShootingSound();
-            animatorController.SetShooting(true);
+            animatorController.TriggerShoot();  // Use trigger for shooting
             FireBullet();
             bulletsLeft--;
             yield return new WaitForSeconds(shootingDelay);
@@ -180,7 +179,6 @@ private void Update()
             SaveBulletsToPlayerState(); // Save bullets state after firing
         }
 
-        animatorController.SetShooting(false);
         readyToShoot = true;
     }
 
@@ -198,7 +196,6 @@ private void Update()
     private void ResetShot()
     {
         readyToShoot = true;
-        animatorController.SetShooting(false);
     }
 
     private void PlayShootingSound()
@@ -224,10 +221,9 @@ private void Update()
     private void Reload()
     {
         StopAllCoroutines();
-        animatorController.SetShooting(false);
-        animatorController.SetReloading(true);
         isReloading = true;
         readyToShoot = false;
+        animatorController.SetReloading(true);  // Use boolean for reloading
         if (audioSource != null && reloadSound != null)
         {
             audioSource.PlayOneShot(reloadSound);
@@ -237,12 +233,12 @@ private void Update()
 
     private void ReloadCompleted()
     {
-        animatorController.SetReloading(false);
         int bulletsToReload = Mathf.Min(magazineSize - bulletsLeft, accumulatedBullets);
         bulletsLeft += bulletsToReload;
         accumulatedBullets -= bulletsToReload;
         isReloading = false;
         readyToShoot = true;
+        animatorController.SetReloading(false);  // Use boolean for reloading
 
         SaveBulletsToPlayerState(); // Save bullets state after reloading
         UpdateAmmoDisplay();
