@@ -278,7 +278,7 @@ public class WeaponSwitcher : MonoBehaviour
         AmmoManager.Instance.grenadeDisplay.gameObject.SetActive(false);
         AmmoManager.Instance.UpdateGrenadeDisplay(PlayerState.Instance.grenadeCount);
     }
-    private void ToggleDrone()
+   private void ToggleDrone()
 {
     if (isDroneActive)
     {
@@ -319,9 +319,17 @@ public class WeaponSwitcher : MonoBehaviour
 
             if (Physics.Raycast(ray, out hit, 10f, LayerMask.GetMask("Ground")))
             {
-                  spawnPosition = hit.point + Vector3.up * 1.0f;
+                spawnPosition = hit.point + Vector3.up * 1.0f;
                 droneInstance = Instantiate(dronePrefab, spawnPosition, Quaternion.identity);
                 droneInstance.GetComponent<DroneMovement>().SetInitialRotation(playerCamera.transform.forward);
+
+                // Apply sensitivity to the spawned drone
+                float droneSensitivity = SaveManager.Instance.LoadSensitivitySettings().droneSensitivity;
+                DroneMovement droneMovement = droneInstance.GetComponent<DroneMovement>();
+                if (droneMovement != null)
+                {
+                    droneMovement.SetSensitivity(droneSensitivity);
+                }
 
                 // Switch to the drone camera
                 droneCamera.Priority = 10;

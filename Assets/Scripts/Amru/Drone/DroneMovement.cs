@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class DroneMovement : MonoBehaviour
 {
+    // Singleton instance
+    public static DroneMovement Instance { get; private set; }
+
     // Drone components
     private Rigidbody droneRigidbody;
     private AudioSource droneAudioSource;
@@ -41,6 +44,16 @@ public class DroneMovement : MonoBehaviour
 
     void Awake()
     {
+        // Implement singleton pattern
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject); // Destroy the new instance if one already exists
+            return;
+        }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject); // Persist the drone across scenes
+
         // Initialize drone components
         droneRigidbody = GetComponent<Rigidbody>();
         droneAudioSource = gameObject.transform.Find("DroneSound").GetComponent<AudioSource>();
@@ -76,18 +89,22 @@ public class DroneMovement : MonoBehaviour
     {
         if (Mathf.Abs(Input.GetAxis("Vertical")) > 0.2f || Mathf.Abs(Input.GetAxis("Horizontal")) > 0.2f) 
         {
-            if (Input.GetKey(KeyCode.I) || Input.GetKey(KeyCode.K)) {
+            if (Input.GetKey(KeyCode.I) || Input.GetKey(KeyCode.K))
+            {
                 droneRigidbody.velocity = droneRigidbody.velocity;
             }
-            if (Input.GetKey(KeyCode.I) && Input.GetKey(KeyCode.K) && Input.GetKey(KeyCode.J) && Input.GetKey(KeyCode.L)) {
+            if (Input.GetKey(KeyCode.I) && Input.GetKey(KeyCode.K) && Input.GetKey(KeyCode.J) && Input.GetKey(KeyCode.L))
+            {
                 droneRigidbody.velocity = new Vector3(droneRigidbody.velocity.x, Mathf.Lerp(droneRigidbody.velocity.y, 0, Time.deltaTime * 5), droneRigidbody.velocity.z);
                 verticalForce = 281;
             }
-            if (Input.GetKey(KeyCode.I) && Input.GetKey(KeyCode.K) && Input.GetKey(KeyCode.J) && Input.GetKey(KeyCode.L)) {
+            if (Input.GetKey(KeyCode.I) && Input.GetKey(KeyCode.K) && Input.GetKey(KeyCode.J) && Input.GetKey(KeyCode.L))
+            {
                 droneRigidbody.velocity = new Vector3(droneRigidbody.velocity.x, Mathf.Lerp(droneRigidbody.velocity.y, 0, Time.deltaTime * 5), droneRigidbody.velocity.z);
                 verticalForce = 110;
             }
-            if (Input.GetKey(KeyCode.J) || Input.GetKey(KeyCode.L)) {
+            if (Input.GetKey(KeyCode.J) || Input.GetKey(KeyCode.L))
+            {
                 verticalForce = 410;
             }
         }
@@ -233,5 +250,11 @@ public class DroneMovement : MonoBehaviour
         {
             motor.Rotate(Vector3.forward, currentMotorRotationSpeed * Time.deltaTime, Space.Self);
         }
+    }
+
+    // Sets the drone's sensitivity (used in conjunction with SaveManager)
+    public void SetSensitivity(float sensitivity)
+    {
+        rotationSensitivity = sensitivity;
     }
 }

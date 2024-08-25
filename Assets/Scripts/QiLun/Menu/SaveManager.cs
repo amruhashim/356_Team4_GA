@@ -13,7 +13,16 @@ public class SaveManager : MonoBehaviour
     private string jsonPathProject;
     private string jsonPathPersistent;
     private string binaryPath;
-    private string settingsPath; // Path for saving settings data
+
+    // Paths for saving settings data
+    private string settingsJsonPathProject;
+    private string settingsJsonPathPersistent;
+    private string settingsBinaryPath;
+
+    // Paths for saving sensitivity data
+    private string sensitivityJsonPathProject;
+    private string sensitivityJsonPathPersistent;
+    private string sensitivityBinaryPath;
 
     public bool isSavingToJson;
 
@@ -30,18 +39,56 @@ public class SaveManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            audioMixerController = GetComponent<AudioMixerController>(); // Direct reference to the attached AudioMixerController
+            audioMixerController = GetComponent<AudioMixerController>();
+
+            if (audioMixerController == null)
+            {
+                Debug.LogError("AudioMixerController not found on SaveManager. Ensure the component is attached.");
+            }
         }
     }
 
     private void Start()
     {
-        jsonPathProject = Application.dataPath + Path.AltDirectorySeparatorChar + "SaveGame.json";
-        jsonPathPersistent = Application.persistentDataPath + Path.AltDirectorySeparatorChar + "SaveGame.json";
-        binaryPath = Application.persistentDataPath + "/save_game.bin";
-        settingsPath = Application.persistentDataPath + "/settings.json"; // Set the path for the settings file
+        // Initialize paths
+        InitializePaths();
 
+        // Load or create settings files
+        InitializeSettingsFiles();
+
+        // Load and apply settings
         LoadAndApplyVolumeSettings();
+        LoadAndApplySensitivitySettings();
+    }
+
+    private void InitializePaths()
+    {
+        jsonPathProject = Path.Combine(Application.dataPath, "SaveGame.json");
+        jsonPathPersistent = Path.Combine(Application.persistentDataPath, "SaveGame.json");
+        binaryPath = Path.Combine(Application.persistentDataPath, "save_game.bin");
+
+        settingsJsonPathProject = Path.Combine(Application.dataPath, "Settings.json");
+        settingsJsonPathPersistent = Path.Combine(Application.persistentDataPath, "Settings.json");
+        settingsBinaryPath = Path.Combine(Application.persistentDataPath, "settings.bin");
+
+        sensitivityJsonPathProject = Path.Combine(Application.dataPath, "Sensitivity.json");
+        sensitivityJsonPathPersistent = Path.Combine(Application.persistentDataPath, "Sensitivity.json");
+        sensitivityBinaryPath = Path.Combine(Application.persistentDataPath, "sensitivity.bin");
+    }
+
+    private void InitializeSettingsFiles()
+    {
+        // Check if settings file exists, if not create it with default settings
+        if (!File.Exists(settingsJsonPathPersistent))
+        {
+            SaveVolumeSettings(1.0f, 1.0f, 1.0f);
+        }
+
+        // Check if sensitivity file exists, if not create it with default settings
+        if (!File.Exists(sensitivityJsonPathPersistent))
+        {
+            SaveSensitivitySettings(new Vector2(1.0f, 1.0f), 2.5f); // Default drone sensitivity of 2.5
+        }
     }
 
     #region Save and Load Game Data
@@ -49,20 +96,11 @@ public class SaveManager : MonoBehaviour
     {
         PlayerState.Instance.SavePlayerData();
 
-        // Log the file paths to the console
         Debug.Log("Saving game data...");
-        Debug.Log($"JSON Path (Project): {jsonPathProject}");
-        Debug.Log($"JSON Path (Persistent): {jsonPathPersistent}");
-        Debug.Log($"Binary Path: {binaryPath}");
-
-        // Save to JSON file in project directory
         string jsonData = JsonUtility.ToJson(PlayerState.Instance);
         File.WriteAllText(jsonPathProject, jsonData);
-
-        // Save to JSON file in persistent data path
         File.WriteAllText(jsonPathPersistent, jsonData);
 
-        // Save to binary file in persistent data path
         using (FileStream fileStream = new FileStream(binaryPath, FileMode.Create))
         {
             using (BinaryWriter binaryWriter = new BinaryWriter(fileStream))
@@ -71,24 +109,24 @@ public class SaveManager : MonoBehaviour
             }
         }
 
-        Debug.Log("Game saved using files");
+        Debug.Log("Game saved using multiple files");
     }
 
     public void StartLoadedGame(string sceneName)
     {
-        SceneManager.sceneLoaded += OnSceneLoaded; // Subscribe to scene loaded event
+        SceneManager.sceneLoaded += OnSceneLoaded;
         SceneManager.LoadScene(sceneName);
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         PlayerState.Instance.LoadPlayerData();
-        SceneManager.sceneLoaded -= OnSceneLoaded; // Unsubscribe to avoid memory leaks
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
     public void StartNewGame(string sceneName)
     {
-        PlayerPrefs.DeleteAll(); // Clear all PlayerPrefs, or selectively delete specific keys if needed
+        PlayerPrefs.DeleteAll();
         SceneManager.sceneLoaded += OnNewGameSceneLoaded;
         SceneManager.LoadScene(sceneName);
     }
@@ -96,7 +134,7 @@ public class SaveManager : MonoBehaviour
     private void OnNewGameSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         PlayerState.Instance.InitializeNewPlayerData();
-        SceneManager.sceneLoaded -= OnNewGameSceneLoaded; // Unsubscribe to avoid memory leaks
+        SceneManager.sceneLoaded -= OnNewGameSceneLoaded;
     }
     #endregion
 
@@ -119,15 +157,27 @@ public class SaveManager : MonoBehaviour
         };
 
         string settingsJson = JsonUtility.ToJson(volumeSettings);
-        File.WriteAllText(settingsPath, settingsJson); // Save settings to a separate file
-        Debug.Log("Volume settings saved to file.");
+
+        Debug.Log($"Saving volume settings: Music: {music}, Effects: {effects}, Master: {master}");
+        File.WriteAllText(settingsJsonPathProject, settingsJson);
+        File.WriteAllText(settingsJsonPathPersistent, settingsJson);
+
+        using (FileStream fileStream = new FileStream(settingsBinaryPath, FileMode.Create))
+        {
+            using (BinaryWriter binaryWriter = new BinaryWriter(fileStream))
+            {
+                binaryWriter.Write(settingsJson);
+            }
+        }
+
+        Debug.Log("Volume settings saved using multiple files");
     }
 
     public VolumeSettings LoadVolumeSettings()
     {
-        if (File.Exists(settingsPath))
+        if (File.Exists(settingsJsonPathPersistent))
         {
-            string settingsJson = File.ReadAllText(settingsPath);
+            string settingsJson = File.ReadAllText(settingsJsonPathPersistent);
             return JsonUtility.FromJson<VolumeSettings>(settingsJson);
         }
         else
@@ -140,9 +190,91 @@ public class SaveManager : MonoBehaviour
     public void LoadAndApplyVolumeSettings()
     {
         VolumeSettings volumeSettings = LoadVolumeSettings();
-        audioMixerController.SetMasterVolume(volumeSettings.master);
-        audioMixerController.SetMusicVolume(volumeSettings.music);
-        audioMixerController.SetEffectsVolume(volumeSettings.effects);
+        if (audioMixerController != null)
+        {
+            audioMixerController.SetMasterVolume(volumeSettings.master);
+            audioMixerController.SetMusicVolume(volumeSettings.music);
+            audioMixerController.SetEffectsVolume(volumeSettings.effects);
+        }
+        else
+        {
+            Debug.LogError("AudioMixerController is null. Cannot apply volume settings.");
+        }
+    }
+    #endregion
+
+    #region Sensitivity Settings
+    [System.Serializable]
+    public class SensitivitySettings
+    {
+        public Vector2 mouseSensitivity;
+        public float droneSensitivity;
+
+        public SensitivitySettings(Vector2 mouseSensitivity, float droneSensitivity)
+        {
+            this.mouseSensitivity = mouseSensitivity;
+            this.droneSensitivity = droneSensitivity;
+        }
+    }
+
+    public void SaveSensitivitySettings(Vector2 mouseSensitivity, float droneSensitivity)
+    {
+        SensitivitySettings sensitivitySettings = new SensitivitySettings(mouseSensitivity, droneSensitivity);
+
+        string sensitivityJson = JsonUtility.ToJson(sensitivitySettings);
+
+        Debug.Log($"Saving sensitivity settings: Mouse X: {mouseSensitivity.x}, Mouse Y: {mouseSensitivity.y}, Drone: {droneSensitivity}");
+        File.WriteAllText(sensitivityJsonPathProject, sensitivityJson);
+        File.WriteAllText(sensitivityJsonPathPersistent, sensitivityJson);
+
+        using (FileStream fileStream = new FileStream(sensitivityBinaryPath, FileMode.Create))
+        {
+            using (BinaryWriter binaryWriter = new BinaryWriter(fileStream))
+            {
+                binaryWriter.Write(sensitivityJson);
+            }
+        }
+
+        Debug.Log("Sensitivity settings saved using multiple files");
+    }
+
+    public SensitivitySettings LoadSensitivitySettings()
+    {
+        if (File.Exists(sensitivityJsonPathPersistent))
+        {
+            string sensitivityJson = File.ReadAllText(sensitivityJsonPathPersistent);
+            Debug.Log($"Loaded sensitivity settings: {sensitivityJson}");
+            return JsonUtility.FromJson<SensitivitySettings>(sensitivityJson);
+        }
+        else
+        {
+            Debug.Log("No sensitivity file found, using default settings.");
+            return new SensitivitySettings(new Vector2(1.0f, 1.0f), 2.5f); // Default drone sensitivity of 2.5
+        }
+    }
+
+    public void LoadAndApplySensitivitySettings()
+    {
+        SensitivitySettings sensitivitySettings = LoadSensitivitySettings();
+        Debug.Log($"Applying sensitivity settings: Mouse X: {sensitivitySettings.mouseSensitivity.x}, Mouse Y: {sensitivitySettings.mouseSensitivity.y}, Drone: {sensitivitySettings.droneSensitivity}");
+
+        if (CameraLook.Instance != null)
+        {
+            CameraLook.Instance.SetSensitivity(sensitivitySettings.mouseSensitivity);
+        }
+        else
+        {
+            Debug.LogWarning("CameraLook instance is null. Mouse sensitivity settings not applied.");
+        }
+
+        if (DroneMovement.Instance != null)
+        {
+            DroneMovement.Instance.SetSensitivity(sensitivitySettings.droneSensitivity);
+        }
+        else
+        {
+            Debug.LogWarning("DroneMovement instance is null. Drone sensitivity settings not applied.");
+        }
     }
     #endregion
 }

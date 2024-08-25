@@ -32,9 +32,24 @@ public class CameraLook : MonoBehaviour
     private Quaternion rotationCharacter;
     private Quaternion rotationCamera;
     private bool isCursorLocked = false;
+    
+    public static CameraLook Instance { get; private set; } // Singleton instance
     #endregion
 
     #region UNITY
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject); // Ensure only one instance exists
+        }
+        else
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject); // Optional: If you want the instance to persist across scenes
+        }
+    }
+
     private void Start()
     {
         // Initialize cursor state
@@ -63,7 +78,7 @@ public class CameraLook : MonoBehaviour
     private void LateUpdate()
     {
         // Return if the cursor is not locked or the menu is open
-        if (!isCursorLocked || MenuManager.Instance.isMenuOpen)
+        if (!isCursorLocked || (MenuManager.Instance != null && MenuManager.Instance.isMenuOpen))
             return;
 
         // Frame Input
@@ -128,6 +143,11 @@ public class CameraLook : MonoBehaviour
         isCursorLocked = locked;
         Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
         Cursor.visible = !locked;
+    }
+
+    public void SetSensitivity(Vector2 newSensitivity)
+    {
+        sensitivity = newSensitivity;
     }
     #endregion
 }
