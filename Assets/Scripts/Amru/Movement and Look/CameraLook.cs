@@ -32,24 +32,9 @@ public class CameraLook : MonoBehaviour
     private Quaternion rotationCharacter;
     private Quaternion rotationCamera;
     private bool isCursorLocked = false;
-    
-    public static CameraLook Instance { get; private set; } // Singleton instance
     #endregion
 
     #region UNITY
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject); // Ensure only one instance exists
-        }
-        else
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject); // Optional: If you want the instance to persist across scenes
-        }
-    }
-
     private void Start()
     {
         // Initialize cursor state

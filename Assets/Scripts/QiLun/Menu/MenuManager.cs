@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class MenuManager : MonoBehaviour
 {
-   
     public static MenuManager Instance { get; set; }
 
     public GameObject menuCanvas;
@@ -30,24 +29,36 @@ public class MenuManager : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.M) && !isMenuOpen)
+        if (Input.GetKeyDown(KeyCode.M))
+        {
+            ToggleMenu();
+        }
+
+        // Ensure cursor stays unlocked and visible when the menu is open
+        if (isMenuOpen)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+    }
+
+    private void ToggleMenu()
+    {
+        if (!isMenuOpen)
         {
             // Open the menu
             uiCanvas.SetActive(false);
             menuCanvas.SetActive(true);
-            menu.SetActive(true); // Set menu to true here
+            menu.SetActive(true);
 
             isMenuOpen = true;
-
-            Cursor.lockState = CursorLockMode.None;
-            Cursor.visible = true;
         }
-        else if (Input.GetKeyDown(KeyCode.M) && isMenuOpen)
+        else
         {
             // Close the menu and return to the game
             saveMenu.SetActive(false);
             settingsMenu.SetActive(false);
-            menu.SetActive(true); // Keep the main menu active to ensure it's ready when toggling again
+            menu.SetActive(true);
 
             uiCanvas.SetActive(true);
             menuCanvas.SetActive(false);
@@ -59,16 +70,15 @@ public class MenuManager : MonoBehaviour
         }
     }
 
-public void TempSaveGame()
-{
-    if (SaveManager.Instance != null)
+    public void TempSaveGame()
     {
-        SaveManager.Instance.SaveGame();
+        if (SaveManager.Instance != null)
+        {
+            SaveManager.Instance.SaveGame();
+        }
+        else
+        {
+            Debug.LogError("SaveManager instance is null. Make sure SaveManager is initialized.");
+        }
     }
-    else
-    {
-        Debug.LogError("SaveManager instance is null. Make sure SaveManager is initialized.");
-    }
-}
-
 }

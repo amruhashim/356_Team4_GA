@@ -1,14 +1,10 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using static SaveManager;
 
 public class SettingsManager : MonoBehaviour
 {
-    public static SettingsManager Instance { get; private set; }
-
     // Volume Settings UI
     public Button backBTN;
     public Slider masterSlider;
@@ -20,18 +16,21 @@ public class SettingsManager : MonoBehaviour
     public Slider sensitivitySlider; // Single slider for both X and Y sensitivity
     public Slider droneSensitivitySlider; // Slider for drone sensitivity
 
+    // References to other components
+    private CameraLook cameraLook;
+    private DroneMovement droneMovement;
+    private SaveManager saveManager;
+    private AudioMixerController audioMixerController;
+
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-        }
-        else
-        {
-            Instance = this;
-        }
+        // Find or assign references
+        cameraLook = FindObjectOfType<CameraLook>();
+        droneMovement = FindObjectOfType<DroneMovement>();
+        saveManager = FindObjectOfType<SaveManager>();
+        audioMixerController = FindObjectOfType<AudioMixerController>();
 
-        Debug.Log("SettingsManager Awake - Instance set.");
+        Debug.Log("SettingsManager Awake - References set.");
     }
 
     private void Start()
@@ -50,7 +49,7 @@ public class SettingsManager : MonoBehaviour
         // Back button for volume settings
         backBTN.onClick.AddListener(() =>
         {
-            SaveManager.Instance.SaveVolumeSettings(musicSlider.value, effectsSlider.value, masterSlider.value);
+            saveManager?.SaveVolumeSettings(musicSlider.value, effectsSlider.value, masterSlider.value);
         });
 
         // Back button for sensitivity settings
@@ -75,54 +74,59 @@ public class SettingsManager : MonoBehaviour
         Debug.Log("Settings loaded and applied after delay.");
     }
 
-    private void LoadAndSetVolume()
+    public void LoadAndSetVolume()
     {
         Debug.Log("Loading volume settings from SaveManager...");
 
-        VolumeSettings volumeSettings = SaveManager.Instance.LoadVolumeSettings();
+        var volumeSettings = saveManager?.LoadVolumeSettings();
 
-        masterSlider.value = volumeSettings.master;
-        musicSlider.value = volumeSettings.music;
-        effectsSlider.value = volumeSettings.effects;
+        if (volumeSettings != null)
+        {
+            masterSlider.value = volumeSettings.master;
+            musicSlider.value = volumeSettings.music;
+            effectsSlider.value = volumeSettings.effects;
 
-        SetMasterVolume(masterSlider.value);
-        SetMusicVolume(musicSlider.value);
-        SetEffectsVolume(effectsSlider.value);
+            SetMasterVolume(masterSlider.value);
+            SetMusicVolume(musicSlider.value);
+            SetEffectsVolume(effectsSlider.value);
 
-        Debug.Log("Volume settings applied to AudioMixer.");
+            Debug.Log("Volume settings applied to AudioMixer.");
+        }
     }
 
-    private void LoadAndSetSensitivity()
+    public void LoadAndSetSensitivity()
     {
         Debug.Log("Loading sensitivity settings from SaveManager...");
 
-        // Load the sensitivity settings
-        SensitivitySettings sensitivitySettings = SaveManager.Instance.LoadSensitivitySettings();
+        var sensitivitySettings = saveManager?.LoadSensitivitySettings();
 
-        Debug.Log($"Loaded sensitivity settings: Mouse X={sensitivitySettings.mouseSensitivity.x}, Y={sensitivitySettings.mouseSensitivity.y}, Drone={sensitivitySettings.droneSensitivity}");
+        if (sensitivitySettings != null)
+        {
+            Debug.Log($"Loaded sensitivity settings: Mouse X={sensitivitySettings.mouseSensitivity.x}, Y={sensitivitySettings.mouseSensitivity.y}, Drone={sensitivitySettings.droneSensitivity}");
 
-        // Set the slider values based on the loaded settings
-        sensitivitySlider.value = sensitivitySettings.mouseSensitivity.x; // Assuming X and Y are the same
-        droneSensitivitySlider.value = sensitivitySettings.droneSensitivity;
+            // Set the slider values based on the loaded settings
+            sensitivitySlider.value = sensitivitySettings.mouseSensitivity.x; // Assuming X and Y are the same
+            droneSensitivitySlider.value = sensitivitySettings.droneSensitivity;
 
-        // Apply the sensitivity immediately
-        CameraLook.Instance?.SetSensitivity(sensitivitySettings.mouseSensitivity);
-        DroneMovement.Instance?.SetSensitivity(sensitivitySettings.droneSensitivity);
+            // Apply the sensitivity immediately
+            cameraLook?.SetSensitivity(sensitivitySettings.mouseSensitivity);
+            droneMovement?.SetSensitivity(sensitivitySettings.droneSensitivity);
 
-        // Save the settings immediately
-        SaveManager.Instance.SaveSensitivitySettings(sensitivitySettings.mouseSensitivity, sensitivitySettings.droneSensitivity);
+            // Save the settings immediately
+            saveManager?.SaveSensitivitySettings(sensitivitySettings.mouseSensitivity, sensitivitySettings.droneSensitivity);
 
-        Debug.Log("Sensitivity settings applied and saved.");
+            Debug.Log("Sensitivity settings applied and saved.");
+        }
     }
 
     private void ApplySensitivity(float mouseSensitivity, float droneSensitivity)
     {
         // Apply the sensitivity to CameraLook and DroneMovement directly
-        CameraLook.Instance?.SetSensitivity(new Vector2(mouseSensitivity, mouseSensitivity));
-        DroneMovement.Instance?.SetSensitivity(droneSensitivity);
+        cameraLook?.SetSensitivity(new Vector2(mouseSensitivity, mouseSensitivity));
+        droneMovement?.SetSensitivity(droneSensitivity);
 
         // Save the settings immediately
-        SaveManager.Instance.SaveSensitivitySettings(new Vector2(mouseSensitivity, mouseSensitivity), droneSensitivity);
+        saveManager?.SaveSensitivitySettings(new Vector2(mouseSensitivity, mouseSensitivity), droneSensitivity);
 
         Debug.Log($"Sensitivity applied and saved: Mouse X={mouseSensitivity}, Y={mouseSensitivity}, Drone={droneSensitivity}");
     }
@@ -140,22 +144,22 @@ public class SettingsManager : MonoBehaviour
     public void SetMasterVolume(float value)
     {
         float dbValue = Mathf.Lerp(-80f, 0f, value / 10f);
-        AudioMixerController.Instance.SetMasterVolume(dbValue);
-        SaveManager.Instance.SaveVolumeSettings(masterSlider.value, musicSlider.value, effectsSlider.value);
+        audioMixerController?.SetMasterVolume(dbValue);
+        saveManager?.SaveVolumeSettings(masterSlider.value, musicSlider.value, effectsSlider.value);
     }
 
     public void SetMusicVolume(float value)
     {
         float dbValue = Mathf.Lerp(-80f, 0f, value / 10f);
-        AudioMixerController.Instance.SetMusicVolume(dbValue);
-        SaveManager.Instance.SaveVolumeSettings(masterSlider.value, musicSlider.value, effectsSlider.value);
+        audioMixerController?.SetMusicVolume(dbValue);
+        saveManager?.SaveVolumeSettings(masterSlider.value, musicSlider.value, effectsSlider.value);
     }
 
     public void SetEffectsVolume(float value)
     {
         float dbValue = Mathf.Lerp(-80f, 0f, value / 10f);
-        AudioMixerController.Instance.SetEffectsVolume(dbValue);
-        SaveManager.Instance.SaveVolumeSettings(masterSlider.value, musicSlider.value, effectsSlider.value);
+        audioMixerController?.SetEffectsVolume(dbValue);
+        saveManager?.SaveVolumeSettings(masterSlider.value, musicSlider.value, effectsSlider.value);
     }
 
     public void SetSensitivity(float value)

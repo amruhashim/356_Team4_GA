@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.IO;
 using UnityEngine.SceneManagement;
 
@@ -29,6 +26,10 @@ public class SaveManager : MonoBehaviour
     // Reference to AudioMixerController
     private AudioMixerController audioMixerController;
 
+    // References to CameraLook and DroneMovement
+    private CameraLook cameraLook;
+    private DroneMovement droneMovement;
+
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -39,8 +40,9 @@ public class SaveManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            audioMixerController = GetComponent<AudioMixerController>();
 
+            // Initialize AudioMixerController
+            audioMixerController = GetComponent<AudioMixerController>();
             if (audioMixerController == null)
             {
                 Debug.LogError("AudioMixerController not found on SaveManager. Ensure the component is attached.");
@@ -61,19 +63,38 @@ public class SaveManager : MonoBehaviour
         LoadAndApplySensitivitySettings();
     }
 
+    // Method to assign references to CameraLook and DroneMovement
+    public void SetReferences(CameraLook cameraLookInstance, DroneMovement droneMovementInstance)
+    {
+        cameraLook = cameraLookInstance;
+        droneMovement = droneMovementInstance;
+    }
+
     private void InitializePaths()
     {
-        jsonPathProject = Path.Combine(Application.dataPath, "SaveGame.json");
-        jsonPathPersistent = Path.Combine(Application.persistentDataPath, "SaveGame.json");
-        binaryPath = Path.Combine(Application.persistentDataPath, "save_game.bin");
+        jsonPathProject = Application.dataPath + Path.AltDirectorySeparatorChar + "SaveGame.json";
+        jsonPathPersistent = Application.persistentDataPath + Path.AltDirectorySeparatorChar + "SaveGame.json";
+        binaryPath = Application.persistentDataPath + "/save_game.bin";
 
-        settingsJsonPathProject = Path.Combine(Application.dataPath, "Settings.json");
-        settingsJsonPathPersistent = Path.Combine(Application.persistentDataPath, "Settings.json");
-        settingsBinaryPath = Path.Combine(Application.persistentDataPath, "settings.bin");
+        settingsJsonPathProject = Application.dataPath + Path.AltDirectorySeparatorChar + "Settings.json";
+        settingsJsonPathPersistent = Application.persistentDataPath + Path.AltDirectorySeparatorChar + "Settings.json";
+        settingsBinaryPath = Application.persistentDataPath + "/settings.bin";
 
-        sensitivityJsonPathProject = Path.Combine(Application.dataPath, "Sensitivity.json");
-        sensitivityJsonPathPersistent = Path.Combine(Application.persistentDataPath, "Sensitivity.json");
-        sensitivityBinaryPath = Path.Combine(Application.persistentDataPath, "sensitivity.bin");
+        sensitivityJsonPathProject = Application.dataPath + Path.AltDirectorySeparatorChar + "Sensitivity.json";
+        sensitivityJsonPathPersistent = Application.persistentDataPath + Path.AltDirectorySeparatorChar + "Sensitivity.json";
+        sensitivityBinaryPath = Application.persistentDataPath + "/sensitivity.bin";
+
+        // Debugging the paths
+        Debug.Log("Paths initialized:");
+        Debug.Log($"jsonPathProject: {jsonPathProject}");
+        Debug.Log($"jsonPathPersistent: {jsonPathPersistent}");
+        Debug.Log($"binaryPath: {binaryPath}");
+        Debug.Log($"settingsJsonPathProject: {settingsJsonPathProject}");
+        Debug.Log($"settingsJsonPathPersistent: {settingsJsonPathPersistent}");
+        Debug.Log($"settingsBinaryPath: {settingsBinaryPath}");
+        Debug.Log($"sensitivityJsonPathProject: {sensitivityJsonPathProject}");
+        Debug.Log($"sensitivityJsonPathPersistent: {sensitivityJsonPathPersistent}");
+        Debug.Log($"sensitivityBinaryPath: {sensitivityBinaryPath}");
     }
 
     private void InitializeSettingsFiles()
@@ -121,6 +142,7 @@ public class SaveManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         PlayerState.Instance.LoadPlayerData();
+        AssignSceneSpecificReferences();  // Assign references for CameraLook and DroneMovement when the scene loads
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
@@ -134,6 +156,7 @@ public class SaveManager : MonoBehaviour
     private void OnNewGameSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         PlayerState.Instance.InitializeNewPlayerData();
+        AssignSceneSpecificReferences();  // Assign references for CameraLook and DroneMovement when the scene loads
         SceneManager.sceneLoaded -= OnNewGameSceneLoaded;
     }
     #endregion
@@ -258,23 +281,34 @@ public class SaveManager : MonoBehaviour
         SensitivitySettings sensitivitySettings = LoadSensitivitySettings();
         Debug.Log($"Applying sensitivity settings: Mouse X: {sensitivitySettings.mouseSensitivity.x}, Mouse Y: {sensitivitySettings.mouseSensitivity.y}, Drone: {sensitivitySettings.droneSensitivity}");
 
-        if (CameraLook.Instance != null)
+        // Apply sensitivity if references are set
+        if (cameraLook != null)
         {
-            CameraLook.Instance.SetSensitivity(sensitivitySettings.mouseSensitivity);
+            cameraLook.SetSensitivity(sensitivitySettings.mouseSensitivity);
         }
         else
         {
-            Debug.LogWarning("CameraLook instance is null. Mouse sensitivity settings not applied.");
+            Debug.LogWarning("CameraLook reference is null. Mouse sensitivity settings not applied.");
         }
 
-        if (DroneMovement.Instance != null)
+        if (droneMovement != null)
         {
-            DroneMovement.Instance.SetSensitivity(sensitivitySettings.droneSensitivity);
+            droneMovement.SetSensitivity(sensitivitySettings.droneSensitivity);
         }
         else
         {
-            Debug.LogWarning("DroneMovement instance is null. Drone sensitivity settings not applied.");
+            Debug.LogWarning("DroneMovement reference is null. Drone sensitivity settings not applied.");
         }
     }
     #endregion
+
+    // Assign scene-specific references for CameraLook and DroneMovement
+    private void AssignSceneSpecificReferences()
+    {
+        if (SceneManager.GetActiveScene().name == "YourSceneName") // Replace "YourSceneName" with the actual scene name
+        {
+            cameraLook = FindObjectOfType<CameraLook>();
+            droneMovement = FindObjectOfType<DroneMovement>();
+        }
+    }
 }

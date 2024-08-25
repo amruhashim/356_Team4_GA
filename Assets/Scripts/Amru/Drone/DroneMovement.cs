@@ -4,9 +4,6 @@ using UnityEngine;
 
 public class DroneMovement : MonoBehaviour
 {
-    // Singleton instance
-    public static DroneMovement Instance { get; private set; }
-
     // Drone components
     private Rigidbody droneRigidbody;
     private AudioSource droneAudioSource;
@@ -44,16 +41,6 @@ public class DroneMovement : MonoBehaviour
 
     void Awake()
     {
-        // Implement singleton pattern
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject); // Destroy the new instance if one already exists
-            return;
-        }
-
-        Instance = this;
-        DontDestroyOnLoad(gameObject); // Persist the drone across scenes
-
         // Initialize drone components
         droneRigidbody = GetComponent<Rigidbody>();
         droneAudioSource = gameObject.transform.Find("DroneSound").GetComponent<AudioSource>();
