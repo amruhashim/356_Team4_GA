@@ -70,3 +70,21 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+# Ignore JSON and binary save files in the project folder
+/Assets/SaveGame.json
+/Assets/Settings.json
+/Assets/Sensitivity.json
+
+# Ignore JSON and binary save files in the persistent data path
+# Note: Files in Application.persistentDataPath are usually stored outside of the project directory,
+# so they typically don't need to be ignored unless you're explicitly saving them within the repo.
+
+# However, if they are being stored inside the repo for some reason, you could use:
+SaveGame.json
+Settings.json
+Sensitivity.json
+save_game.bin
+settings.bin
+sensitivity.bin
+
