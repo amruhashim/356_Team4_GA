@@ -29,7 +29,7 @@ public class Radar : MonoBehaviour
 
     void Update()
     {
-        pivotTransform.eulerAngles -= new Vector3(0, rotationSpeed * Time.deltaTime, 0);
+        pivotTransform.eulerAngles += new Vector3(0, rotationSpeed * Time.deltaTime, 0);
 
         Collider[] hits = Physics.OverlapSphere(transform.position, radarDistance);
 
