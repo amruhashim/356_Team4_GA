@@ -120,17 +120,19 @@ private void Update()
         }
     }
 
-    private bool AreAllHostagesRescued()
+private bool AreAllHostagesRescued()
+{
+    foreach (var hostageState in hostageStates)
     {
-        foreach (var hostageState in hostageStates.Values)
+        Debug.Log($"Hostage {hostageState.Key}: Rescued = {hostageState.Value.isRescued}");
+        if (!hostageState.Value.isRescued)
         {
-            if (!hostageState.isRescued)
-            {
-                return false;
-            }
+            return false;
         }
-        return true;
     }
+    return true;
+}
+
 
     public void UpdateHostageState(string hostageID, Vector3 position, Quaternion rotation, bool isRescued)
     {

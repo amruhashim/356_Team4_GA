@@ -170,31 +170,36 @@ public class SaveManager : MonoBehaviour
         public float master;
     }
 
-    public void SaveVolumeSettings(float master, float music, float effects)
+public void SaveVolumeSettings(float master, float music, float effects)
+{
+    if (string.IsNullOrEmpty(settingsJsonPathPersistent))
     {
-        VolumeSettings volumeSettings = new VolumeSettings
-        {
-            master = master,
-            music = music,
-            effects = effects,
-        };
-
-        string settingsJson = JsonUtility.ToJson(volumeSettings);
-
-        Debug.Log($"Saving volume settings: Music: {music}, Effects: {effects}, Master: {master}");
-        File.WriteAllText(settingsJsonPathProject, settingsJson);
-        File.WriteAllText(settingsJsonPathPersistent, settingsJson);
-
-        using (FileStream fileStream = new FileStream(settingsBinaryPath, FileMode.Create))
-        {
-            using (BinaryWriter binaryWriter = new BinaryWriter(fileStream))
-            {
-                binaryWriter.Write(settingsJson);
-            }
-        }
-
-        Debug.Log("Volume settings saved using multiple files");
+        Debug.LogError("Settings path is not initialized.");
+        return;
     }
+
+    VolumeSettings volumeSettings = new VolumeSettings
+    {
+        master = master,
+        music = music,
+        effects = effects,
+    };
+
+    string settingsJson = JsonUtility.ToJson(volumeSettings);
+
+    File.WriteAllText(settingsJsonPathPersistent, settingsJson);
+
+    using (FileStream fileStream = new FileStream(settingsBinaryPath, FileMode.Create))
+    {
+        using (BinaryWriter binaryWriter = new BinaryWriter(fileStream))
+        {
+            binaryWriter.Write(settingsJson);
+        }
+    }
+
+    Debug.Log("Volume settings saved successfully.");
+}
+
 
     public VolumeSettings LoadVolumeSettings()
     {
