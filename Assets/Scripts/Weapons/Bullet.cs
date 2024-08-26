@@ -19,18 +19,6 @@ public class Bullet : MonoBehaviour
         }
 
 
-        if (collision.gameObject.CompareTag("Breakable"))
-        {
-            print("hit " + collision.gameObject.name + " !");
-            BreakObject breakable = collision.gameObject.GetComponent<BreakObject>();
-            if (breakable != null)
-            {
-                breakable.Break();
-            }
-            Destroy(gameObject);  
-        }
-
-
         if (collision.gameObject.CompareTag("Metal"))
         {
             CreateBulletImpactEffect(collision, GlobalReferences.Instance.bulletImpacteffectMetal);

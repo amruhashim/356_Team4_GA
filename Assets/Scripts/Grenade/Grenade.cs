@@ -81,13 +81,6 @@ public class Grenade : MonoBehaviour
                 agent.HitByGrenade(damage);
             }
 
-            // Break any breakable object within the radius
-            BreakObject breakable = nearbyObject.GetComponent<BreakObject>();
-            if (breakable != null)
-            {
-                breakable.Break();
-            }
-
             // Change color of any object with tag "Breakable" within the radius
             if (nearbyObject.CompareTag("Breakable"))
             {
