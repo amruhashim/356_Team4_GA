@@ -41,11 +41,25 @@ public class PlayerState : MonoBehaviour
         }
     }
 
+    // Struct to hold Door state data
+    private struct DoorStateData
+    {
+        public bool isOpen;
+
+        public DoorStateData(bool isOpen)
+        {
+            this.isOpen = isOpen;
+        }
+    }
+
     private Dictionary<string, AIStateData> aiAgentStates = new Dictionary<string, AIStateData>();
     private Dictionary<string, HostageStateData> hostageStates = new Dictionary<string, HostageStateData>();
+    private Dictionary<string, DoorStateData> doorStates = new Dictionary<string, DoorStateData>();
 
     public Vector3 initialSpawnPoint = new Vector3(0, 1, 0);
     public Quaternion initialRotation = Quaternion.identity;
+    private bool isGameOverTriggered = false;
+     private bool isMissionCompleteTriggered = false;
 
     private void Awake()
     {
@@ -60,21 +74,84 @@ public class PlayerState : MonoBehaviour
         }
     }
 
-    private void Update()
+private void Update()
+{
+    // Check if the player's health is 0 and trigger game over if necessary
+    if (currentHealth <= 0 && !isGameOverTriggered)
     {
-        if (Input.GetKeyDown(KeyCode.K))
+        currentHealth = 0;
+        isGameOverTriggered = true;
+        Debug.Log("Player health is 0. Triggering Game Over.");
+        TriggerGameOver();
+    }
+
+    // Check if all hostages are rescued and trigger mission complete if necessary
+    if (AreAllHostagesRescued() && !isMissionCompleteTriggered)
+    {
+        isMissionCompleteTriggered = true;
+        Debug.Log("All hostages rescued. Triggering Mission Complete.");
+        TriggerMissionComplete();
+    }
+}
+
+    private void TriggerGameOver()
+    {
+        // Initialize player data for a new game
+        InitializeNewPlayerData();
+
+        // Trigger the game over sequence
+        GameStateManager gameStateManager = FindObjectOfType<GameStateManager>();
+        if (gameStateManager != null)
         {
-            if (currentHealth > 0)
-            {
-                currentHealth -= 10;
-                if (currentHealth < 0)
-                {
-                    currentHealth = 0;
-                }
-                SavePlayerData();
-            }
+            gameStateManager.TriggerGameOver();
         }
     }
+
+    private void TriggerMissionComplete()
+    {
+        // Initialize player data for a new game or next mission
+        InitializeNewPlayerData();
+
+        // Trigger the mission complete sequence
+        GameStateManager gameStateManager = FindObjectOfType<GameStateManager>();
+        if (gameStateManager != null)
+        {
+            gameStateManager.TriggerMissionComplete();
+        }
+    }
+
+    private bool AreAllHostagesRescued()
+    {
+        foreach (var hostageState in hostageStates.Values)
+        {
+            if (!hostageState.isRescued)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void UpdateHostageState(string hostageID, Vector3 position, Quaternion rotation, bool isRescued)
+    {
+        hostageStates[hostageID] = new HostageStateData(position, rotation, isRescued);
+        PlayerPrefs.SetFloat(hostageID + "_posX", position.x);
+        PlayerPrefs.SetFloat(hostageID + "_posY", position.y);
+        PlayerPrefs.SetFloat(hostageID + "_posZ", position.z);
+        PlayerPrefs.SetFloat(hostageID + "_rotX", rotation.eulerAngles.x);
+        PlayerPrefs.SetFloat(hostageID + "_rotY", rotation.eulerAngles.y);
+        PlayerPrefs.SetFloat(hostageID + "_rotZ", rotation.eulerAngles.z);
+        PlayerPrefs.SetInt(hostageID + "_isRescued", isRescued ? 1 : 0);
+        PlayerPrefs.Save();
+
+        // Check if all hostages are rescued
+        if (AreAllHostagesRescued() && !isMissionCompleteTriggered)
+        {
+            isMissionCompleteTriggered = true;
+            TriggerMissionComplete();
+        }
+    }
+
 
     public void SavePlayerData()
     {
@@ -112,6 +189,12 @@ public class PlayerState : MonoBehaviour
             PlayerPrefs.SetFloat(kvp.Key + "_rotY", kvp.Value.rotation.eulerAngles.y);
             PlayerPrefs.SetFloat(kvp.Key + "_rotZ", kvp.Value.rotation.eulerAngles.z);
             PlayerPrefs.SetInt(kvp.Key + "_isRescued", kvp.Value.isRescued ? 1 : 0);
+        }
+
+        // Save door states
+        foreach (var kvp in doorStates)
+        {
+            PlayerPrefs.SetInt(kvp.Key + "_isOpen", kvp.Value.isOpen ? 1 : 0);
         }
 
         PlayerPrefs.Save();
@@ -201,12 +284,35 @@ public class PlayerState : MonoBehaviour
                     hostage.gameObject.SetActive(true); // Ensure the hostage is active
                 }
             }
+
+            // Load door states
+            SwingDoor[] swingDoors = FindObjectsOfType<SwingDoor>();
+            doorStates.Clear();
+            foreach (var door in swingDoors)
+            {
+                string doorID = door.doorIdentifier;
+                bool isOpen = PlayerPrefs.GetInt(doorID + "_isOpen", 0) == 1;
+                doorStates[doorID] = new DoorStateData(isOpen);
+            }
         }
         else
         {
             InitializeNewPlayerData();
         }
     }
+
+public int GetRescuedHostagesCount()
+{
+    int count = 0;
+    foreach (var hostageState in hostageStates.Values)
+    {
+        if (hostageState.isRescued)
+        {
+            count++;
+        }
+    }
+    return count;
+}
 
     public void InitializeNewPlayerData()
     {
@@ -227,6 +333,7 @@ public class PlayerState : MonoBehaviour
 
         aiAgentStates.Clear();
         hostageStates.Clear();
+        doorStates.Clear();
 
         PatrolAgent[] patrolAgents = FindObjectsOfType<PatrolAgent>();
         foreach (var agent in patrolAgents)
@@ -240,6 +347,12 @@ public class PlayerState : MonoBehaviour
         foreach (var hostage in hostages)
         {
             hostageStates[hostage.UniqueID] = new HostageStateData(hostage.transform.position, hostage.transform.rotation, false);
+        }
+
+        SwingDoor[] swingDoors = FindObjectsOfType<SwingDoor>();
+        foreach (var door in swingDoors)
+        {
+            doorStates[door.doorIdentifier] = new DoorStateData(false); // Assume doors are closed by default
         }
 
         PlayerPrefs.SetInt("playerStarted", 1);
@@ -256,17 +369,23 @@ public class PlayerState : MonoBehaviour
         PlayerPrefs.Save();
     }
 
-    public void UpdateHostageState(string hostageID, Vector3 position, Quaternion rotation, bool isRescued)
+
+    // Update door state
+    public void SetDoorState(string doorID, bool isOpen)
     {
-        hostageStates[hostageID] = new HostageStateData(position, rotation, isRescued);
-        PlayerPrefs.SetFloat(hostageID + "_posX", position.x);
-        PlayerPrefs.SetFloat(hostageID + "_posY", position.y);
-        PlayerPrefs.SetFloat(hostageID + "_posZ", position.z);
-        PlayerPrefs.SetFloat(hostageID + "_rotX", rotation.eulerAngles.x);
-        PlayerPrefs.SetFloat(hostageID + "_rotY", rotation.eulerAngles.y);
-        PlayerPrefs.SetFloat(hostageID + "_rotZ", rotation.eulerAngles.z);
-        PlayerPrefs.SetInt(hostageID + "_isRescued", isRescued ? 1 : 0);
+        doorStates[doorID] = new DoorStateData(isOpen);
+        PlayerPrefs.SetInt(doorID + "_isOpen", isOpen ? 1 : 0);
         PlayerPrefs.Save();
+    }
+
+    // Check if a door is open
+    public bool IsDoorOpen(string doorID)
+    {
+        if (doorStates.ContainsKey(doorID))
+        {
+            return doorStates[doorID].isOpen;
+        }
+        return false; // Default to closed if the door ID is not found
     }
 
     // This is the method to get the health of a specific AI

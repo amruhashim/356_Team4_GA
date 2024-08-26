@@ -12,10 +12,14 @@ public class HostageManager : MonoBehaviour
     public float holdTime = 2.0f; // Time required to hold the button to pick up or drop the hostage
     public Slider holdSlider; // Reference to the UI Slider
     public TextMeshProUGUI warningMessage; // Reference to the TextMeshPro message
+    public TextMeshProUGUI hostageStatusText; // Reference to the TextMeshPro for showing hostage status
 
     private float holdTimer = 0f;
     private bool isCarrying = false;
     private Hostage currentHostage;
+
+    private int totalHostages;
+    private int rescuedHostages;
 
     void Start()
     {
@@ -24,6 +28,13 @@ public class HostageManager : MonoBehaviour
         // Ensure the slider and message are initially disabled
         holdSlider.gameObject.SetActive(false);
         warningMessage.gameObject.SetActive(false);
+
+        // Initialize hostage counts
+        totalHostages = FindObjectsOfType<Hostage>().Length;
+        rescuedHostages = PlayerState.Instance.GetRescuedHostagesCount(); // Retrieve the number of rescued hostages from PlayerState
+
+        // Update the hostage status text initially
+        UpdateHostageStatusText();
     }
 
     void Update()
@@ -112,66 +123,63 @@ public class HostageManager : MonoBehaviour
             Debug.Log($"Hostage picked up and disabled. Hostage ID: {currentHostage.UniqueID}");
         }
     }
-public void DropHostage()
-{
-    if (currentHostage != null)
+
+    public void DropHostage()
     {
-        isCarrying = false;
-        hostageArm.SetActive(false);
-
-        // Get the main camera
-        Camera mainCamera = Camera.main;
-
-        // Calculate a point in front of the player
-        Vector3 forwardPoint = player.position + player.forward * 1.5f;
-        Vector3 dropPosition = forwardPoint;
-
-        // Perform a raycast downward from a fixed height above the forward point
-        Ray ray = new Ray(forwardPoint + Vector3.up * 10f, Vector3.down);
-        RaycastHit hit;
-
-        if (Physics.Raycast(ray, out hit, Mathf.Infinity, LayerMask.GetMask("Ground")))
+        if (currentHostage != null)
         {
-            dropPosition = hit.point; // Use the hit point as the initial drop position
+            isCarrying = false;
+            hostageArm.SetActive(false);
 
-            // Ensure the drop position is on the NavMesh
-            NavMeshHit navHit;
-            if (NavMesh.SamplePosition(dropPosition, out navHit, 1.0f, NavMesh.AllAreas))
+            // Get the main camera
+            Camera mainCamera = Camera.main;
+
+            // Calculate a point in front of the player
+            Vector3 forwardPoint = player.position + player.forward * 1.5f;
+            Vector3 dropPosition = forwardPoint;
+
+            // Perform a raycast downward from a fixed height above the forward point
+            Ray ray = new Ray(forwardPoint + Vector3.up * 10f, Vector3.down);
+            RaycastHit hit;
+
+            if (Physics.Raycast(ray, out hit, Mathf.Infinity, LayerMask.GetMask("Ground")))
             {
-                dropPosition = navHit.position;
-            }
-            else
-            {
-                // Perform a secondary raycast to fine-tune the position on the terrain
-                if (Physics.Raycast(dropPosition + Vector3.up * 5f, Vector3.down, out hit, 10f))
+                dropPosition = hit.point; // Use the hit point as the initial drop position
+
+                // Ensure the drop position is on the NavMesh
+                NavMeshHit navHit;
+                if (NavMesh.SamplePosition(dropPosition, out navHit, 1.0f, NavMesh.AllAreas))
                 {
-                    dropPosition = hit.point; // Adjust to the terrain surface
+                    dropPosition = navHit.position;
+                }
+                else
+                {
+                    // Perform a secondary raycast to fine-tune the position on the terrain
+                    if (Physics.Raycast(dropPosition + Vector3.up * 5f, Vector3.down, out hit, 10f))
+                    {
+                        dropPosition = hit.point; // Adjust to the terrain surface
+                    }
                 }
             }
+
+            // Set the hostage's position
+            currentHostage.transform.position = dropPosition;
+
+            // Make the hostage face the player
+            Vector3 directionToFace = (player.position - dropPosition).normalized;
+            directionToFace.y = 0; // Keep the rotation on the Y axis only
+            currentHostage.transform.rotation = Quaternion.LookRotation(directionToFace);
+
+            currentHostage.gameObject.SetActive(true);
+
+            // Update the hostage state in PlayerState
+            PlayerState.Instance.UpdateHostageState(currentHostage.UniqueID, dropPosition, currentHostage.transform.rotation, false);
+
+            Debug.Log($"Hostage dropped, re-enabled, and facing the player. Hostage ID: {currentHostage.UniqueID}");
+
+            currentHostage = null;
         }
-
-        // Set the hostage's position
-        currentHostage.transform.position = dropPosition;
-
-        // Make the hostage face the player
-        Vector3 directionToFace = (player.position - dropPosition).normalized;
-        directionToFace.y = 0; // Keep the rotation on the Y axis only
-        currentHostage.transform.rotation = Quaternion.LookRotation(directionToFace);
-
-        currentHostage.gameObject.SetActive(true);
-
-        // Update the hostage state in PlayerState
-        PlayerState.Instance.UpdateHostageState(currentHostage.UniqueID, dropPosition, currentHostage.transform.rotation, false);
-
-        Debug.Log($"Hostage dropped, re-enabled, and facing the player. Hostage ID: {currentHostage.UniqueID}");
-
-        currentHostage = null;
     }
-}
-
-
-
-
 
     public bool IsCarryingHostage()
     {
@@ -189,6 +197,18 @@ public void DropHostage()
             currentHostage = null; // Clear the reference
             isCarrying = false;
             hostageArm.SetActive(false);
+
+            // Update rescued hostage count and UI
+            rescuedHostages++;
+            UpdateHostageStatusText();
+        }
+    }
+
+    private void UpdateHostageStatusText()
+    {
+        if (hostageStatusText != null)
+        {
+            hostageStatusText.text = $"Hostages Rescued: {rescuedHostages}/{totalHostages}";
         }
     }
 }

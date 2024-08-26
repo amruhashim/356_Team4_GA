@@ -12,6 +12,7 @@ public class MenuManager : MonoBehaviour
     public GameObject saveMenu;
     public GameObject settingsMenu;
     public GameObject menu;
+    public GameObject menuBackground;  // New reference to the menu background object
 
     public bool isMenuOpen;
 
@@ -51,6 +52,11 @@ public class MenuManager : MonoBehaviour
             menuCanvas.SetActive(true);
             menu.SetActive(true);
 
+            if (menuBackground != null)
+            {
+                menuBackground.SetActive(true);  // Activate the menu background
+            }
+
             isMenuOpen = true;
         }
         else
@@ -62,6 +68,11 @@ public class MenuManager : MonoBehaviour
 
             uiCanvas.SetActive(true);
             menuCanvas.SetActive(false);
+
+            if (menuBackground != null)
+            {
+                menuBackground.SetActive(false);  // Deactivate the menu background
+            }
 
             isMenuOpen = false;
 

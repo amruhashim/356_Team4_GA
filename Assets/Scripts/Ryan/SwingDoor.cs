@@ -8,6 +8,7 @@ public class SwingDoor : MonoBehaviour
     public GameObject uiElement; // Reference to the UI element to activate/deactivate
     public Image xButtonSlider; // Reference to the Image UI element to use as the slider
     public string doorIdentifier; // Unique identifier for the door
+    public Collider doorCollider; // Reference to the door's collider
 
     private Quaternion originalRotation;
     private Quaternion targetRotation;
@@ -18,12 +19,20 @@ public class SwingDoor : MonoBehaviour
     private float xKeyHoldDuration = 1f; // 1 second hold duration
     private bool isCoroutineRunning = false;
     private bool isPlayerInCollider = false;
-    private string collidedDoorIdentifier = null; // Stores the identifier of the door the player is interacting with
+
+    private void Start()
+    {
+        // Check if the door was previously open and open it immediately if it was
+        if (PlayerState.Instance.IsDoorOpen(doorIdentifier))
+        {
+            OpenDoorInstantly();
+        }
+    }
 
     private void Update()
     {
-        // Check if the player is interacting with the correct door
-        if (isPlayerInCollider && doorIdentifier == collidedDoorIdentifier)
+        // Check if the player is interacting with the door
+        if (isPlayerInCollider)
         {
             // Check for X key press and hold
             if (Input.GetKeyDown(KeyCode.X))
@@ -73,7 +82,6 @@ public class SwingDoor : MonoBehaviour
         if (other.CompareTag("Drone"))
         {
             isPlayerInCollider = true;
-            collidedDoorIdentifier = doorIdentifier; // Store the identifier of the door the player is interacting with
             xButtonSlider.gameObject.SetActive(true); // Activate the slider when the player enters the collider
             xButtonSlider.fillAmount = 0f; // Reset the slider value when the player enters the collider
         }
@@ -84,7 +92,6 @@ public class SwingDoor : MonoBehaviour
         if (other.CompareTag("Drone"))
         {
             isPlayerInCollider = false;
-            collidedDoorIdentifier = null; // Reset the stored door identifier
             xButtonSlider.gameObject.SetActive(false); // Deactivate the slider when the player exits the collider
             uiElement.SetActive(false); // Deactivate the UI element when the player exits the collider
         }
@@ -113,6 +120,15 @@ public class SwingDoor : MonoBehaviour
         swingObject.transform.rotation = targetRotation;
         isOpen = true;
         isCoroutineRunning = false;
+
+        // Disable the collider to prevent further interaction
+        if (doorCollider != null)
+        {
+            doorCollider.enabled = false;
+        }
+
+        // Save the state in PlayerState
+        PlayerState.Instance.SetDoorState(doorIdentifier, true);
     }
 
     private IEnumerator FillXButtonSlider()
@@ -138,5 +154,22 @@ public class SwingDoor : MonoBehaviour
 
         // Ensure the slider ends up at the maximum fill amount
         xButtonSlider.fillAmount = 1f;
+    }
+
+    private void OpenDoorInstantly()
+    {
+        // Directly set the door to the open position
+        originalRotation = swingObject.transform.rotation;
+        swingObject.transform.rotation = originalRotation * Quaternion.Euler(0f, 0f, swingAngle);
+        isOpen = true;
+
+        // Disable the collider to prevent further interaction
+        if (doorCollider != null)
+        {
+            doorCollider.enabled = false;
+        }
+
+        // Hide UI since the door is already open
+        uiElement.SetActive(false);
     }
 }

@@ -170,13 +170,13 @@ public class SaveManager : MonoBehaviour
         public float master;
     }
 
-    public void SaveVolumeSettings(float music, float effects, float master)
+    public void SaveVolumeSettings(float master, float music, float effects)
     {
         VolumeSettings volumeSettings = new VolumeSettings
         {
+            master = master,
             music = music,
             effects = effects,
-            master = master
         };
 
         string settingsJson = JsonUtility.ToJson(volumeSettings);

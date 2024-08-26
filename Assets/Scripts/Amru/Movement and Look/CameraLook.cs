@@ -38,7 +38,7 @@ public class CameraLook : MonoBehaviour
     private void Start()
     {
         // Initialize cursor state
-        SetCursorState(false);
+        SetCursorState(true);
 
         // Cache the CharacterController reference and initial rotations
         characterController = GetComponent<CharacterController>();
@@ -49,14 +49,17 @@ public class CameraLook : MonoBehaviour
     private void Update()
     {
         // Unlock the cursor when the Escape key is pressed
-        if (Input.GetKeyDown(KeyCode.Escape))
+
+         if (!isCursorLocked && !MenuManager.Instance.isMenuOpen)
+        {
+            // Lock and hide the cursor when the left mouse button is clicked and the menu is not open
+            SetCursorState(true);
+        }
+
+        // Ensure the cursor is unlocked if the menu is open
+        if (MenuManager.Instance != null && MenuManager.Instance.isMenuOpen)
         {
             SetCursorState(false);
-        }
-        else if (Input.GetMouseButtonDown(0) && !isCursorLocked)
-        {
-            // Lock and hide the cursor when the left mouse button is clicked
-            SetCursorState(true);
         }
     }
 
@@ -122,9 +125,15 @@ public class CameraLook : MonoBehaviour
         return rotation;
     }
 
-    // Sets the cursor state to locked or unlocked.
+    // Sets the cursor state to locked or unlocked, based on the menu state.
     private void SetCursorState(bool locked)
     {
+        if (MenuManager.Instance != null && MenuManager.Instance.isMenuOpen)
+        {
+            // Always unlock the cursor if the menu is open
+            locked = false;
+        }
+
         isCursorLocked = locked;
         Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
         Cursor.visible = !locked;

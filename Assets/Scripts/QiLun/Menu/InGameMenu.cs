@@ -45,7 +45,7 @@ public class InGameMenu : MonoBehaviour
         // Back button for volume settings
         backBTN.onClick.AddListener(() =>
         {
-            SaveManager.Instance.SaveVolumeSettings(musicSlider.value, effectsSlider.value, masterSlider.value);
+            SaveManager.Instance.SaveVolumeSettings(masterSlider.value,musicSlider.value,effectsSlider.value);
         });
 
         // Back button for sensitivity settings

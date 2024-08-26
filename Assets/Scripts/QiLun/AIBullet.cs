@@ -2,9 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BulletDebug : MonoBehaviour
+public class AIBullet : MonoBehaviour
 {
     public LayerMask interactionLayerMask;  // Set this in the inspector to the layer you want the bullet to interact with
+    public float damageAmount = 10f;        // Amount of damage this bullet will cause
 
     private void OnCollisionEnter(Collision collision)
     {
@@ -15,7 +16,21 @@ public class BulletDebug : MonoBehaviour
             if (collision.gameObject.CompareTag("Player"))
             {
                 Debug.Log("Bullet collided with the player: " + collision.gameObject.name);
-                // Implement any additional logic for when the bullet hits the player
+
+                // Get the PlayerHealth component from the player
+                PlayerHealth playerHealth = collision.gameObject.GetComponent<PlayerHealth>();
+                if (playerHealth != null)
+                {
+                    // Call the method to decrement health
+                    playerHealth.PlayerTakingDamage(damageAmount);
+
+                    // Handle the health impact effect and coroutine for fading
+                    if (playerHealth.fadeCoroutine != null)
+                    {
+                        playerHealth.StopCoroutine(playerHealth.fadeCoroutine);
+                    }
+                    playerHealth.fadeCoroutine = playerHealth.StartCoroutine(playerHealth.FadeOutHealthImpact());
+                }
             }
             else
             {
