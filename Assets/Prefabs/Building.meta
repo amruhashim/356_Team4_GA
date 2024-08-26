@@ -1,5 +1,13 @@
 fileFormatVersion: 2
+<<<<<<< HEAD
 guid: ee4481ac802abda41856f8f22adf59b6
+=======
+<<<<<<<< HEAD:Assets/Prefabs/Building.meta
+guid: 85bfe883c881ad04c832065c5cd1bb1e
+========
+guid: 23f6d21da830b5e44b514c73f8fe4cbd
+>>>>>>>> 37c7ebd6ea102e51c98561ed3a07d4d4f7959ce9:Assets/Scenes/A2qiulun_Profiles.meta
+>>>>>>> 9d4d319369e60485e15387997880d052074e6b72
 folderAsset: yes
 DefaultImporter:
   externalObjects: {}
