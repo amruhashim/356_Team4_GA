@@ -6,26 +6,25 @@ using TMPro;
 
 public class HealthBar : MonoBehaviour
 {
-    private Slider slider;
-    public TMP_Text healthCounter;
+    private int baseValue;
+    private int maxValue;
 
-    public GameObject playerState;
+    [SerializeField] private Image fill;
+    [SerializeField] private TextMeshProUGUI amount;
 
-    private float currentHealth, maxHealth;
-
-    void Awake()
+    public void SetValues(int _baseValue, int _maxValue)
     {
-        slider = GetComponent<Slider>();
+        baseValue = _baseValue;
+        maxValue = _maxValue;
+
+        amount.text = baseValue.ToString();
+
+        CalculateFillAmount();
     }
 
-    void Update()
+    private void CalculateFillAmount()
     {
-        currentHealth = playerState.GetComponent<PlayerState>().currentHealth;
-        maxHealth = playerState.GetComponent<PlayerState>().maxHealth;
-
-        float fillValue = currentHealth / maxHealth;
-        slider.value = fillValue;
-
-        healthCounter.text = currentHealth.ToString();
+        float fillAmount = (float)baseValue / (float)maxValue;
+        fill.fillAmount = fillAmount;
     }
 }
