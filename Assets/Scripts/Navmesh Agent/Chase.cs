@@ -277,35 +277,6 @@ private void Shoot()
     // Calculate direction towards the target
     Vector3 direction = (targetTransform.position - shootingPoint.position).normalized;
 
-    // Raycast to check for a hit
-    RaycastHit hit;
-    if (Physics.Raycast(shootingPoint.position, direction, out hit, shootingStartRange))
-    {
-        // Check if the hit object is the player
-        if (hit.collider.CompareTag("Player"))
-        {
-            // Apply damage to the player
-            PlayerHealth playerHealth = hit.collider.GetComponent<PlayerHealth>();
-            if (playerHealth != null)
-            {
-                playerHealth.PlayerTakingDamage(3f);  // Adjust damage as needed
-
-                // Handle the health impact effect and coroutine for fading
-                if (playerHealth.fadeCoroutine != null)
-                {
-                    playerHealth.StopCoroutine(playerHealth.fadeCoroutine);
-                }
-                playerHealth.fadeCoroutine = playerHealth.StartCoroutine(playerHealth.FadeOutHealthImpact());
-            }
-
-            Debug.Log("Raycast hit the player directly!");
-        }
-        else
-        {
-            Debug.Log($"Raycast hit: {hit.collider.name}");
-        }
-    }
-
     // Instantiate the bullet for visual feedback
     GameObject bullet = Instantiate(bulletPrefab, shootingPoint.position, Quaternion.identity);
 
@@ -316,18 +287,63 @@ private void Shoot()
         rb.velocity = direction * bulletSpeed;
     }
 
+    // Raycast to check for a hit
+    RaycastHit hit;
+    if (Physics.Raycast(shootingPoint.position, direction, out hit, Mathf.Infinity))
+    {
+        // Check if the hit object is the player or the drone
+        if (hit.collider.CompareTag("Player") || hit.collider.CompareTag("Drone"))
+        {
+            // Play the shooting sound in sync with the raycast hit
+            if (shootingSound != null && audioSource != null)
+            {
+                audioSource.PlayOneShot(shootingSound);
+            }
+
+            // Apply damage to the player or drone
+            if (hit.collider.CompareTag("Player"))
+            {
+                PlayerHealth playerHealth = hit.collider.GetComponent<PlayerHealth>();
+                if (playerHealth != null)
+                {
+                    playerHealth.PlayerTakingDamage(3f);  // Adjust damage as needed
+
+                    // Handle the health impact effect and coroutine for fading
+                    if (playerHealth.fadeCoroutine != null)
+                    {
+                        playerHealth.StopCoroutine(playerHealth.fadeCoroutine);
+                    }
+                    playerHealth.fadeCoroutine = playerHealth.StartCoroutine(playerHealth.FadeOutHealthImpact());
+                }
+
+                Debug.Log("Raycast hit the player directly!");
+            }
+            else if (hit.collider.CompareTag("Drone"))
+            {
+                // Toggle back to the player when the drone is hit
+                WeaponSwitcher weaponSwitcher = FindObjectOfType<WeaponSwitcher>();
+                if (weaponSwitcher != null)
+                {
+                    weaponSwitcher.ToggleDrone();
+                }
+
+                Debug.Log("Raycast hit the drone directly!");
+            }
+        }
+        else
+        {
+            Debug.Log($"Raycast hit: {hit.collider.name}");
+        }
+    }
+
     // Set a bullet lifetime (in seconds)
     float bulletLifetime = 5.0f;  // Adjust this value as needed
     Destroy(bullet, bulletLifetime);
 
-    // Play the shooting sound
-    if (shootingSound != null && audioSource != null)
-    {
-        audioSource.PlayOneShot(shootingSound);
-    }
-
     Debug.Log("Chase: Shooting bullet at the target.");
 }
+
+
 
 
 

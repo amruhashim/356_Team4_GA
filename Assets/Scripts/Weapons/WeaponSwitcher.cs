@@ -376,7 +376,7 @@ private void SwitchToMeleeWeapon()
 }
 
 
-    private void ToggleDrone()
+    public void ToggleDrone()
     {
         if (isDroneActive)
         {
