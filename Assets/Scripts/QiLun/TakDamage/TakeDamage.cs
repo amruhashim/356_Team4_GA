@@ -15,18 +15,23 @@ public class TakeDamage : MonoBehaviour
     {
         _volume = GetComponent<PostProcessVolume>();
 
+        if (_volume == null)
+        {
+            Debug.LogError("PostProcessVolume not found on this GameObject.");
+            return;
+        }
+
         _vignette = _volume.profile.GetSetting<Vignette>();
+        Debug.Log(_vignette);
 
         if (_vignette == null)
         {
             Debug.LogError("Vignette setting not found in the PostProcessProfile.");
+            return;
         }
-        else
-        {
-            _vignette.enabled.Override(false);
-        }
-    }
 
+        _vignette.enabled.Override(false);
+    }
 
     // Update is called once per frame
     void Update()
@@ -51,6 +56,7 @@ public class TakeDamage : MonoBehaviour
             if (intensity < 0) intensity = 0;
 
             _vignette.intensity.Override(intensity);
+            Debug.Log("Vignette intensity: " + intensity);
 
             yield return new WaitForSeconds(0.1f);
         }
