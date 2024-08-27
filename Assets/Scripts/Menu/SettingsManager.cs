@@ -1,7 +1,6 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 
 public class SettingsManager : MonoBehaviour
 {
@@ -49,7 +48,7 @@ public class SettingsManager : MonoBehaviour
         // Back button for volume settings
         backBTN.onClick.AddListener(() =>
         {
-            saveManager?.SaveVolumeSettings(masterSlider.value,musicSlider.value, effectsSlider.value);
+            saveManager?.SaveVolumeSettings(masterSlider.value, musicSlider.value, effectsSlider.value);
         });
 
         // Back button for sensitivity settings
@@ -109,7 +108,7 @@ public class SettingsManager : MonoBehaviour
             droneSensitivitySlider.value = sensitivitySettings.droneSensitivity;
 
             // Apply the sensitivity immediately
-            cameraLook?.SetSensitivity(sensitivitySettings.mouseSensitivity);
+            cameraLook?.SetSensitivity(sensitivitySettings.mouseSensitivity.ToVector2());
             droneMovement?.SetSensitivity(sensitivitySettings.droneSensitivity);
 
             // Save the settings immediately
@@ -126,7 +125,7 @@ public class SettingsManager : MonoBehaviour
         droneMovement?.SetSensitivity(droneSensitivity);
 
         // Save the settings immediately
-        saveManager?.SaveSensitivitySettings(new Vector2(mouseSensitivity, mouseSensitivity), droneSensitivity);
+        saveManager?.SaveSensitivitySettings(new SaveManager.SerializableVector2(mouseSensitivity, mouseSensitivity), droneSensitivity);
 
         Debug.Log($"Sensitivity applied and saved: Mouse X={mouseSensitivity}, Y={mouseSensitivity}, Drone={droneSensitivity}");
     }

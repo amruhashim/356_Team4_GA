@@ -12,26 +12,30 @@ public class MainMenu : MonoBehaviour
     private string jsonPathPersistent;
     private string binaryPath;
 
-    // Paths to check and delete settings files
-    private string settingsJsonPathPersistent;
-    private string settingsBinaryPath;
+    // Paths to check and delete settings files (using Protobuf now)
+    private string settingsProtoPath;
 
-    // Paths to check and delete sensitivity files
-    private string sensitivityJsonPathPersistent;
-    private string sensitivityBinaryPath;
+    // Paths to check and delete sensitivity files (using Protobuf now)
+    private string sensitivityProtoPath;
 
-    private void Start()
+    private void Awake()
     {
         // Define the paths where your save, settings, and sensitivity files might be stored
         jsonPathPersistent = Path.Combine(Application.persistentDataPath, "SaveGame.json");
         binaryPath = Path.Combine(Application.persistentDataPath, "save_game.bin");
 
-        settingsJsonPathPersistent = Path.Combine(Application.persistentDataPath, "Settings.json");
-        settingsBinaryPath = Path.Combine(Application.persistentDataPath, "settings.bin");
+        settingsProtoPath = Path.Combine(Application.persistentDataPath, "settings.proto");
+        sensitivityProtoPath = Path.Combine(Application.persistentDataPath, "sensitivity.proto");
 
-        sensitivityJsonPathPersistent = Path.Combine(Application.persistentDataPath, "Sensitivity.json");
-        sensitivityBinaryPath = Path.Combine(Application.persistentDataPath, "sensitivity.bin");
+        Debug.Log("Paths initialized in Awake:");
+        Debug.Log($"jsonPathPersistent: {jsonPathPersistent}");
+        Debug.Log($"binaryPath: {binaryPath}");
+        Debug.Log($"settingsProtoPath: {settingsProtoPath}");
+        Debug.Log($"sensitivityProtoPath: {sensitivityProtoPath}");
+    }
 
+    private void Start()
+    {
         // Load and apply settings and sensitivity
         LoadAndApplySettingsAndSensitivity();
 
@@ -73,12 +77,12 @@ public class MainMenu : MonoBehaviour
         bool jsonExistsInPersistent = File.Exists(jsonPathPersistent);
         bool binaryExists = File.Exists(binaryPath);
 
-        bool settingsJsonExists = File.Exists(settingsJsonPathPersistent);
-        bool sensitivityJsonExists = File.Exists(sensitivityJsonPathPersistent);
+        bool settingsProtoExists = File.Exists(settingsProtoPath);
+        bool sensitivityProtoExists = File.Exists(sensitivityProtoPath);
 
-        Debug.Log($"Checking save files: JSON in Persistent exists: {jsonExistsInPersistent}, Binary exists: {binaryExists}, Settings JSON exists: {settingsJsonExists}, Sensitivity JSON exists: {sensitivityJsonExists}");
+        Debug.Log($"Checking save files: JSON in Persistent exists: {jsonExistsInPersistent}, Binary exists: {binaryExists}, Settings Proto exists: {settingsProtoExists}, Sensitivity Proto exists: {sensitivityProtoExists}");
 
-        return jsonExistsInPersistent || binaryExists || settingsJsonExists || sensitivityJsonExists;
+        return jsonExistsInPersistent || binaryExists || settingsProtoExists || sensitivityProtoExists;
     }
 
     // Method to update the state of the Load Game button
