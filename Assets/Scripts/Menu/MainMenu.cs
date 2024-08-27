@@ -20,10 +20,6 @@ public class MainMenu : MonoBehaviour
 
     private void Awake()
     {
-        // Define the paths where your save, settings, and sensitivity files might be stored
-        jsonPathPersistent = Path.Combine(Application.persistentDataPath, "SaveGame.json");
-        binaryPath = Path.Combine(Application.persistentDataPath, "save_game.bin");
-
         settingsProtoPath = Path.Combine(Application.persistentDataPath, "settings.proto");
         sensitivityProtoPath = Path.Combine(Application.persistentDataPath, "sensitivity.proto");
 
@@ -71,56 +67,23 @@ public class MainMenu : MonoBehaviour
         Application.Quit();
     }
 
-    // Method to check if a save file exists
-    private bool SaveFileExists()
-    {
-        bool jsonExistsInPersistent = File.Exists(jsonPathPersistent);
-        bool binaryExists = File.Exists(binaryPath);
-
-        bool settingsProtoExists = File.Exists(settingsProtoPath);
-        bool sensitivityProtoExists = File.Exists(sensitivityProtoPath);
-
-        Debug.Log($"Checking save files: JSON in Persistent exists: {jsonExistsInPersistent}, Binary exists: {binaryExists}, Settings Proto exists: {settingsProtoExists}, Sensitivity Proto exists: {sensitivityProtoExists}");
-
-        return jsonExistsInPersistent || binaryExists || settingsProtoExists || sensitivityProtoExists;
-    }
-
     // Method to update the state of the Load Game button
     public void UpdateLoadGameButtonState()
     {
-        if (SaveFileExists())
-        {
-            Debug.Log("Save files found. Enabling Load Game button.");
-            LoadGameBTN.gameObject.SetActive(true);  // Show the Load Game button if save files exist
-        }
-        else
-        {
-            Debug.Log("No save files found. Keeping Load Game button hidden.");
-            LoadGameBTN.gameObject.SetActive(false);  // Hide the Load Game button if no save files exist
-        }
+        // Check if the save file exists by using the boolean stored in SaveManager
+        bool saveFileExists = SaveManager.Instance.LoadSaveStatus();
+
+        // Update the Load Game button based on the save status
+        LoadGameBTN.gameObject.SetActive(saveFileExists);
+
+        Debug.Log(saveFileExists ? "Save file exists. Enabling Load Game button." : "No save file exists. Keeping Load Game button hidden.");
     }
 
     // Method to clear all saved data
     public void ClearAllSaveData()
     {
-        // Delete PlayerPrefs data
-        PlayerPrefs.DeleteAll();
-        PlayerPrefs.Save();
-        Debug.Log("All PlayerPrefs data cleared.");
-
-        // Delete the JSON save file in persistent path if it exists
-        if (File.Exists(jsonPathPersistent))
-        {
-            File.Delete(jsonPathPersistent);
-            Debug.Log("Persistent SaveGame.json file deleted.");
-        }
-
-        // Delete the binary save file if it exists
-        if (File.Exists(binaryPath))
-        {
-            File.Delete(binaryPath);
-            Debug.Log("save_game.bin file deleted.");
-        }
+        // Clear the save data using SaveManager, which updates the save status to false
+        SaveManager.Instance.ClearSaveGame();
     }
 
     // Method to load and apply settings and sensitivity data

@@ -1,6 +1,6 @@
-using UnityEngine;
-using System.IO;
 using ProtoBuf;
+using System.IO;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class SaveManager : MonoBehaviour
@@ -16,6 +16,9 @@ public class SaveManager : MonoBehaviour
 
     // Paths for saving sensitivity data
     private string sensitivityProtoPath;
+
+    // Path for saving save status data
+    private string saveStatusProtoPath;
 
     public bool isSavingToJson;
 
@@ -67,11 +70,8 @@ public class SaveManager : MonoBehaviour
         settingsProtoPath = Path.Combine(Application.persistentDataPath, "settings.proto");
         sensitivityProtoPath = Path.Combine(Application.persistentDataPath, "sensitivity.proto");
 
-        // Debugging the paths
-        Debug.Log("Paths initialized:");
-        Debug.Log($"binaryPath: {binaryPath}");
-        Debug.Log($"settingsProtoPath: {settingsProtoPath}");
-        Debug.Log($"sensitivityProtoPath: {sensitivityProtoPath}");
+        // Path for saving the save status
+        saveStatusProtoPath = Path.Combine(Application.persistentDataPath, "savestatus.proto");
     }
 
     private void InitializeSettingsFiles()
@@ -88,6 +88,47 @@ public class SaveManager : MonoBehaviour
             SaveSensitivitySettings(new SerializableVector2(1.0f, 1.0f), 2.5f); // Default drone sensitivity of 2.5
         }
     }
+
+    #region Save Status Management
+    [ProtoContract]
+    public class SaveStatus
+    {
+        [ProtoMember(1)]
+        public bool SaveFileExists;
+    }
+
+    public void UpdateSaveStatus(bool exists)
+    {
+        SaveStatus saveStatus = new SaveStatus
+        {
+            SaveFileExists = exists
+        };
+
+        using (FileStream file = File.Create(saveStatusProtoPath))
+        {
+            Serializer.Serialize(file, saveStatus);
+        }
+
+        Debug.Log("Save status updated using protobuf-net");
+    }
+
+public bool LoadSaveStatus()
+{
+    if (File.Exists(saveStatusProtoPath))
+    {
+        using (FileStream file = File.OpenRead(saveStatusProtoPath))
+        {
+            SaveStatus saveStatus = Serializer.Deserialize<SaveStatus>(file);
+            return saveStatus.SaveFileExists;
+        }
+    }
+
+    // Return false as the default if the file doesn't exist or is not initialized
+    Debug.LogWarning("Save status file not found. Assuming no save file exists.");
+    return false;
+}
+
+    #endregion
 
     #region Save and Load Game Data
     public void SaveGame()
@@ -108,6 +149,9 @@ public class SaveManager : MonoBehaviour
         }
 
         Debug.Log("Game saved using binary file");
+        
+        // Update save status to true
+        UpdateSaveStatus(true);
     }
 
     public void StartLoadedGame(string sceneName)
@@ -136,6 +180,18 @@ public class SaveManager : MonoBehaviour
         PlayerState.Instance.InitializeNewPlayerData();
         AssignSceneSpecificReferences();  // Assign references for CameraLook and DroneMovement when the scene loads
         SceneManager.sceneLoaded -= OnNewGameSceneLoaded;
+    }
+
+    public void ClearSaveGame()
+    {
+        // Delete save files
+        if (File.Exists(jsonPathPersistent)) File.Delete(jsonPathPersistent);
+        if (File.Exists(binaryPath)) File.Delete(binaryPath);
+
+        // Update save status to false
+        UpdateSaveStatus(false);
+
+        Debug.Log("Save game cleared.");
     }
     #endregion
 
@@ -310,4 +366,3 @@ public class SaveManager : MonoBehaviour
         droneMovement = FindObjectOfType<DroneMovement>();
     }
 }
-
