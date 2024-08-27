@@ -1,0 +1,431 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Class Name="DamageOverlay" Collapsed="true">
+    <Position X="12.75" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\Damage\DamageOverlay.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="TakeDamage" Collapsed="true">
+    <Position X="12.75" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAACAAAAAAAAAAAAAAQAAACAAAAAAAAACgAAA=</HashCode>
+      <FileName>Assets\Scripts\Damage\TakeDamage.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SwingDoor" Collapsed="true">
+    <Position X="0.5" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQEACABACBAAAAAAEAAACAgAIAAAoEQQAAIADAIAAA=</HashCode>
+      <FileName>Assets\Scripts\Door\SwingDoor.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="DroneMovement" Collapsed="true">
+    <Position X="2.25" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>YAAwAEBCAgAAQACGQAAgAAAAMIAIEABDQAhAgAiAgEA=</HashCode>
+      <FileName>Assets\Scripts\Drone\DroneMovement.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Grenade" Collapsed="true">
+    <Position X="8.25" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>ACgAYAIAACBABIBAAAAAAAgAAAQgEAAIAAgAAAAgEAA=</HashCode>
+      <FileName>Assets\Scripts\Grenade\Grenade.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GrenadeManager" Collapsed="true">
+    <Position X="8.25" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAQAAEAEACAAAECAAiIkAAEAgAAAIAAAAAAAARAAIgE=</HashCode>
+      <FileName>Assets\Scripts\Grenade\GrenadeManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GrenadeVisibility" Collapsed="true">
+    <Position X="8.25" Y="8" Width="1.5" />
+    <InheritanceLine Type="UnityEngine.MonoBehaviour" ManuallyRouted="true">
+      <Path>
+        <Point X="3" Y="1.441" />
+        <Point X="3" Y="6.846" />
+        <Point X="4.446" Y="6.846" />
+        <Point X="4.446" Y="7.846" />
+        <Point X="9" Y="7.846" />
+        <Point X="9" Y="8" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAQAIQAAACAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\Grenade\GrenadeVisibility.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Helicopter" Collapsed="true">
+    <Position X="15.5" Y="0.75" Width="1.5" />
+    <InheritanceLine Type="UnityEngine.MonoBehaviour" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="3" Y="1.441" />
+        <Point X="3" Y="1.596" />
+        <Point X="16.25" Y="1.596" />
+        <Point X="16.25" Y="1.441" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\Hostage &amp; Rescue\Helicopter.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Hostage" Collapsed="true">
+    <Position X="15.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAEA=</HashCode>
+      <FileName>Assets\Scripts\Hostage &amp; Rescue\Hostage.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HostageArm" Collapsed="true">
+    <Position X="15.5" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAEA=</HashCode>
+      <FileName>Assets\Scripts\Hostage &amp; Rescue\HostageArm.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HostageManager" Collapsed="true">
+    <Position X="15.5" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQQBIggAACAADCAGAAAAAAAQFAAIAAABCAgAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\Hostage &amp; Rescue\HostageManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="InGameMenu" Collapsed="true">
+    <Position X="6.5" Y="0.75" Width="1.5" />
+    <InheritanceLine Type="UnityEngine.MonoBehaviour" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="3" Y="1.441" />
+        <Point X="3" Y="1.596" />
+        <Point X="7.25" Y="1.596" />
+        <Point X="7.25" Y="1.441" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAQICEEEASAAAAAAAAAIAAAAAACFAAAAREQgACIAAUA=</HashCode>
+      <FileName>Assets\Scripts\Menu\InGameMenu.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MainMenu" Collapsed="true">
+    <Position X="6.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>EAAEAAAAACACEAAAAAAQAAIABAAAQAACAAACAAAACAA=</HashCode>
+      <FileName>Assets\Scripts\Menu\MainMenu.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MenuManager" Collapsed="true">
+    <Position X="6.5" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAQAAAAAIEAAACAAAgAAAgAAAAAQAAAABgAAGA=</HashCode>
+      <FileName>Assets\Scripts\Menu\MenuManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PersistentLoader" Collapsed="true">
+    <Position X="6.5" Y="3.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAEA=</HashCode>
+      <FileName>Assets\Scripts\Menu\PersistentLoader.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SaveManager" Collapsed="true">
+    <Position X="8.25" Y="0.75" Width="1.5" />
+    <InheritanceLine Type="UnityEngine.MonoBehaviour" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="3" Y="1.441" />
+        <Point X="3" Y="1.596" />
+        <Point X="9" Y="1.596" />
+        <Point X="9" Y="1.441" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAQEABAACg4JAGiAAAYIAIBAAAEAAACUAAABAcAIEA=</HashCode>
+      <FileName>Assets\Scripts\Menu\SaveManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SettingsManager" Collapsed="true">
+    <Position X="8.25" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQICEEEASAAAAAAAAAIAAABAASFAAAARAQgACIAAUA=</HashCode>
+      <FileName>Assets\Scripts\Menu\SettingsManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CameraLook" Collapsed="true">
+    <Position X="4.5" Y="0.75" Width="1.5" />
+    <InheritanceLine Type="UnityEngine.MonoBehaviour" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="3" Y="1.441" />
+        <Point X="3" Y="1.596" />
+        <Point X="5.25" Y="1.596" />
+        <Point X="5.25" Y="1.441" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAQAAEBFQCAAAAAAAAgAIAAAAAAAEQAAAIgAACIAAAA=</HashCode>
+      <FileName>Assets\Scripts\Movement and Look\CameraLook.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Movement" Collapsed="true">
+    <Position X="4.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAQAgkAAACAEAAAQgAjAIACAAIAAEACeAAYBIQAhEEA=</HashCode>
+      <FileName>Assets\Scripts\Movement and Look\Movement.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WeaponSway" Collapsed="true">
+    <Position X="4.5" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEQAAACAACAEUAAAAAGAAAAAAAAAgBCAAgIAAAAAAAE=</HashCode>
+      <FileName>Assets\Scripts\Movement and Look\WeaponSway.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="AIStateManager" Collapsed="true">
+    <Position X="11" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAiAABAAAIAAAAAEAAAAAAAAAAAgCAAAAEAA=</HashCode>
+      <FileName>Assets\Scripts\Navmesh Agent\AIStateManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Chase" Collapsed="true">
+    <Position X="11" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>PAcEEkoAAjMCRQREAA4gAAEACAAKGCIAAgIQAAAAAEI=</HashCode>
+      <FileName>Assets\Scripts\Navmesh Agent\Chase.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PatrolAgent" Collapsed="true">
+    <Position X="11" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BGUEiEogACADUwREAgAAFiQAAAICEAgABBgCgAgQcAA=</HashCode>
+      <FileName>Assets\Scripts\Navmesh Agent\PatrolAgent.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="SoundSource" Collapsed="true">
+    <Position X="12.75" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAgAAAACAAEAAAAAAAEAAAAAQAEAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\Navmesh Agent\SoundSource.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Waypoint" Collapsed="true">
+    <Position X="12.75" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAACAAAAAAAAAAAAAAAAAAACAgQAAAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\Navmesh Agent\Waypoint.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GameStateManager" Collapsed="true">
+    <Position X="8.25" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>QAAAAAAAQGAAAAAAIAAQAAJAAAAAAABCABACAAAAABA=</HashCode>
+      <FileName>Assets\Scripts\PlayerState &amp; GameState\GameStateManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HealthBar" Collapsed="true">
+    <Position X="11" Y="1.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAACAAAAAAgAAAAAAAAAACAAAgCAAAAgAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\PlayerState &amp; GameState\HealthBar.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="HealthBarManager" Collapsed="true">
+    <Position X="11" Y="2.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAIACAAAACAAAAAAAAAAAAEAAAAABAAgAAQAAA=</HashCode>
+      <FileName>Assets\Scripts\PlayerState &amp; GameState\HealthBarManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PlayerHealth" Collapsed="true">
+    <Position X="12.75" Y="0.75" Width="1.5" />
+    <InheritanceLine Type="UnityEngine.MonoBehaviour" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="3" Y="1.441" />
+        <Point X="3" Y="1.596" />
+        <Point X="13.5" Y="1.596" />
+        <Point X="13.5" Y="1.441" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAAAAAEgACAAEMAAAAAAAAgAAAAABCAAAAAAAAQAAIE=</HashCode>
+      <FileName>Assets\Scripts\PlayerState &amp; GameState\PlayerHealth.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="PlayerState" Collapsed="true">
+    <Position X="11" Y="0.75" Width="1.5" />
+    <InheritanceLine Type="UnityEngine.MonoBehaviour" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="3" Y="1.441" />
+        <Point X="3" Y="1.596" />
+        <Point X="11.75" Y="1.596" />
+        <Point X="11.75" Y="1.441" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>UAQEAACIAAIAAQAAApAAAAhAAgAEAECAVEQwEBBCAEE=</HashCode>
+      <FileName>Assets\Scripts\PlayerState &amp; GameState\PlayerState.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MinimapRotation" Collapsed="true">
+    <Position X="15.5" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAIAAAAAAAAAABAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\Radar\MinimapRotation.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MinimapSweep" Collapsed="true">
+    <Position X="15.5" Y="5" Width="1.5" />
+    <InheritanceLine Type="UnityEngine.MonoBehaviour" FixedFromPoint="true" FixedToPoint="true">
+      <Path>
+        <Point X="3" Y="1.441" />
+        <Point X="3" Y="4.691" />
+        <Point X="10.814" Y="4.691" Type="JumpStart" />
+        <Point X="10.981" Y="4.691" Type="JumpEnd" />
+        <Point X="12.564" Y="4.691" Type="JumpStart" />
+        <Point X="12.731" Y="4.691" Type="JumpEnd" />
+        <Point X="15.314" Y="4.691" Type="JumpStart" />
+        <Point X="15.481" Y="4.691" Type="JumpEnd" />
+        <Point X="16.25" Y="4.691" />
+        <Point X="16.25" Y="5" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAQAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAABAAAAAAEA=</HashCode>
+      <FileName>Assets\Scripts\Radar\MinimapSweep.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Radar" Collapsed="true">
+    <Position X="15.5" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAREAAAAEAABQAABAEgGAAABACEAAAAAAABAAAAAAEA=</HashCode>
+      <FileName>Assets\Scripts\Radar\Radar.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="AnimationController" Collapsed="true">
+    <Position X="0.5" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAQkgABAEAAAEAAAAAAAAAAAgAAAAAAKBAAAAIAAAUA=</HashCode>
+      <FileName>Assets\Scripts\Utility\AnimationController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="AudioMixerController" Collapsed="true">
+    <Position X="2.25" Y="8" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAQAAAAEAAAAAAAAAAAAAAAEAAAAAAAAQAAgAAAAAEA=</HashCode>
+      <FileName>Assets\Scripts\Utility\AudioMixerController.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="GlobalReferences" Collapsed="true">
+    <Position X="0.5" Y="8" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAQAAIAAAAAEA=</HashCode>
+      <FileName>Assets\Scripts\Utility\GlobalReferences.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="AIBullet" Collapsed="true">
+    <Position X="12.75" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAIAAAAAAAAAAAAAEAAIAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\Weapons\AIBullet.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Ammo" Collapsed="true">
+    <Position X="6.5" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAQAAAEAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\Weapons\Ammo.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="AmmoManager" Collapsed="true">
+    <Position X="4.75" Y="8" Width="1.5" />
+    <InheritanceLine Type="UnityEngine.MonoBehaviour" ManuallyRouted="true">
+      <Path>
+        <Point X="3" Y="1.441" />
+        <Point X="3" Y="6.846" />
+        <Point X="4.458" Y="6.846" />
+        <Point X="4.458" Y="7.846" />
+        <Point X="5.5" Y="7.846" />
+        <Point X="5.5" Y="8" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>AAQAAABAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAARAAEA=</HashCode>
+      <FileName>Assets\Scripts\Weapons\AmmoManager.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Bullet" Collapsed="true">
+    <Position X="6.5" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAIAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\Weapons\Bullet.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MeleeWeapon" Collapsed="true">
+    <Position X="4.75" Y="7" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AQQAAAAAAgAAAAAAAAUkAAAAAAAAEAAAAAAAABCAAGA=</HashCode>
+      <FileName>Assets\Scripts\Weapons\MeleeWeapon.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Weapon" Collapsed="true">
+    <Position X="4.75" Y="5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>LQQAAgFAACAAAAFABiSAhUCAiAABEQICCBRKCSAAgW0=</HashCode>
+      <FileName>Assets\Scripts\Weapons\Weapon.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WeaponBox" Collapsed="true">
+    <Position X="6.5" Y="8" Width="1.5" />
+    <InheritanceLine Type="UnityEngine.MonoBehaviour" ManuallyRouted="true">
+      <Path>
+        <Point X="3" Y="1.441" />
+        <Point X="3" Y="6.846" />
+        <Point X="4.471" Y="6.846" />
+        <Point X="4.471" Y="7.846" />
+        <Point X="7.25" Y="7.846" />
+        <Point X="7.25" Y="8" />
+      </Path>
+    </InheritanceLine>
+    <TypeIdentifier>
+      <HashCode>BAQAAACAACQAAAAAQAAAAQQABAAAEAECAAAAAgAAAAQ=</HashCode>
+      <FileName>Assets\Scripts\Weapons\WeaponBox.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WeaponEntry" Collapsed="true">
+    <Position X="0.5" Y="4.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>BAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Assets\Scripts\Weapons\WeaponSwitcher.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="WeaponSwitcher" Collapsed="true">
+    <Position X="4.75" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AEQkgQDQrCgAgJGAhAAAiAQEAwAAEgEAQAAABCsAAAA=</HashCode>
+      <FileName>Assets\Scripts\Weapons\WeaponSwitcher.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="UnityEngine.MonoBehaviour" Collapsed="true">
+    <Position X="2.25" Y="0.75" Width="1.5" />
+    <TypeIdentifier />
+  </Class>
+  <Class Name="System.Object" Collapsed="true">
+    <Position X="0.5" Y="3.75" Width="1.5" />
+    <TypeIdentifier />
+  </Class>
+  <Class Name="UnityEngine.Behaviour" Collapsed="true">
+    <Position X="0.5" Y="0.75" Width="1.5" />
+    <TypeIdentifier />
+  </Class>
+  <Class Name="UnityEngine.Component" Collapsed="true">
+    <Position X="0.5" Y="1.75" Width="1.5" />
+    <TypeIdentifier />
+  </Class>
+  <Class Name="UnityEngine.Object" Collapsed="true">
+    <Position X="0.5" Y="2.75" Width="1.5" />
+    <TypeIdentifier />
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
