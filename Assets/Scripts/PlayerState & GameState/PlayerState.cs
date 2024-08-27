@@ -59,7 +59,7 @@ public class PlayerState : MonoBehaviour
     public Vector3 initialSpawnPoint = new Vector3(0, 1, 0);
     public Quaternion initialRotation = Quaternion.identity;
     private bool isGameOverTriggered = false;
-     private bool isMissionCompleteTriggered = false;
+    private bool isMissionCompleteTriggered = false;
 
     private void Awake()
     {
@@ -74,25 +74,25 @@ public class PlayerState : MonoBehaviour
         }
     }
 
-private void Update()
-{
-    // Check if the player's health is 0 and trigger game over if necessary
-    if (currentHealth <= 0 && !isGameOverTriggered)
+    private void Update()
     {
-        currentHealth = 0;
-        isGameOverTriggered = true;
-        Debug.Log("Player health is 0. Triggering Game Over.");
-        TriggerGameOver();
-    }
+        // Check if the player's health is 0 and trigger game over if necessary
+        if (currentHealth <= 0 && !isGameOverTriggered)
+        {
+            currentHealth = 0;
+            isGameOverTriggered = true;
+            Debug.Log("Player health is 0. Triggering Game Over.");
+            TriggerGameOver();
+        }
 
-    // Check if all hostages are rescued and trigger mission complete if necessary
-    if (AreAllHostagesRescued() && !isMissionCompleteTriggered)
-    {
-        isMissionCompleteTriggered = true;
-        Debug.Log("All hostages rescued. Triggering Mission Complete.");
-        TriggerMissionComplete();
+        // Check if all hostages are rescued and trigger mission complete if necessary
+        if (AreAllHostagesRescued() && !isMissionCompleteTriggered)
+        {
+            isMissionCompleteTriggered = true;
+            Debug.Log("All hostages rescued. Triggering Mission Complete.");
+            TriggerMissionComplete();
+        }
     }
-}
 
     private void TriggerGameOver()
     {
@@ -120,18 +120,18 @@ private void Update()
         }
     }
 
-private bool AreAllHostagesRescued()
-{
-    foreach (var hostageState in hostageStates)
+    private bool AreAllHostagesRescued()
     {
-        Debug.Log($"Hostage {hostageState.Key}: Rescued = {hostageState.Value.isRescued}");
-        if (!hostageState.Value.isRescued)
+        foreach (var hostageState in hostageStates)
         {
-            return false;
+            Debug.Log($"Hostage {hostageState.Key}: Rescued = {hostageState.Value.isRescued}");
+            if (!hostageState.Value.isRescued)
+            {
+                return false;
+            }
         }
+        return true;
     }
-    return true;
-}
 
 
     public void UpdateHostageState(string hostageID, Vector3 position, Quaternion rotation, bool isRescued)
@@ -303,18 +303,18 @@ private bool AreAllHostagesRescued()
         }
     }
 
-public int GetRescuedHostagesCount()
-{
-    int count = 0;
-    foreach (var hostageState in hostageStates.Values)
+    public int GetRescuedHostagesCount()
     {
-        if (hostageState.isRescued)
+        int count = 0;
+        foreach (var hostageState in hostageStates.Values)
         {
-            count++;
+            if (hostageState.isRescued)
+            {
+                count++;
+            }
         }
+        return count;
     }
-    return count;
-}
 
     public void InitializeNewPlayerData()
     {

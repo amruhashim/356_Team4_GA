@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class AIBullet : MonoBehaviour
 {
-    public LayerMask interactionLayerMask;  // Set this in the inspector to the layer you want the bullet to interact with
-    public float damageAmount = 10f;        // Amount of damage this bullet will cause
+    public LayerMask interactionLayerMask;  
+    public float damageAmount = 10f;        
 
     private void OnCollisionEnter(Collision collision)
     {
@@ -37,7 +37,6 @@ public class AIBullet : MonoBehaviour
                 Debug.Log("Bullet collided with an object on the interaction layer: " + collision.gameObject.name);
             }
 
-            // Optionally destroy the bullet on collision
             Destroy(gameObject);
         }
     }

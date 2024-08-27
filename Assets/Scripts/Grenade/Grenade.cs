@@ -24,7 +24,7 @@ public class Grenade : MonoBehaviour
 
     public void SetInitialBounceForce(float force)
     {
-        initialBounceForce = force * 0.5f; 
+        initialBounceForce = force * 0.5f;
     }
 
     public void DelayedExplosion(float delay)
@@ -82,7 +82,7 @@ public class Grenade : MonoBehaviour
             }
 
             // Change color of any object with tag "Breakable" within the radius
-           
+
         }
 
         // Delay the destruction of the game object until the explosion sound has finished playing

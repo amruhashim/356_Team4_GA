@@ -49,14 +49,14 @@ public class AmmoManager : MonoBehaviour
     // Highlight melee weapon with provided icon
     public void HighlightMeleeWeaponIcon(Sprite meleeIcon)
     {
-        meleeWeaponIcon.sprite = meleeIcon; // Correctly assign the sprite
+        meleeWeaponIcon.sprite = meleeIcon; 
         HighlightIcon(meleeWeaponIcon);
     }
 
     // Highlight grenade with provided icon
     public void HighlightGrenadeIcon(Sprite grenadeSprite)
     {
-        grenadeIcon.sprite = grenadeSprite; // Correctly assign the sprite
+        grenadeIcon.sprite = grenadeSprite; 
         HighlightIcon(grenadeIcon);
     }
 

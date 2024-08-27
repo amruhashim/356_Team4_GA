@@ -127,7 +127,7 @@ public class HostageManager : MonoBehaviour
             // Show the carrying message
             carryingMessage.gameObject.SetActive(true);
             carryingMessage.text = "You are carrying a hostage. Carry them to the rescue helicopter.";
-            
+
             Debug.Log($"Hostage picked up and disabled. Hostage ID: {currentHostage.UniqueID}");
         }
     }

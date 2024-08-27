@@ -12,9 +12,9 @@ public class PlayerHealth : MonoBehaviour
     public Coroutine fadeCoroutine;
 
     // Color settings for health fill
-    public Color healthyColor = Color.green;  // Green for high health
-    public Color midHealthColor = Color.yellow;  // Yellow/Orange for mid health
-    public Color lowHealthColor = Color.red;  // Red for low health
+    public Color healthyColor = Color.green;  
+    public Color midHealthColor = Color.yellow;  
+    public Color lowHealthColor = Color.red;  
 
     void Start()
     {
@@ -52,9 +52,9 @@ public class PlayerHealth : MonoBehaviour
 
             if (PlayerState.Instance.currentHealth <= 0)
             {
-                // Handle player death
+                
                 Debug.Log("Player is dead");
-                // Add any additional logic for player death here
+               
             }
         }
     }
@@ -86,7 +86,7 @@ public class PlayerHealth : MonoBehaviour
         while (healthImpact.color.a > 0)
         {
             Color imageColor = healthImpact.color;
-            imageColor.a -= Time.deltaTime / 2;  // Adjust fade speed here
+            imageColor.a -= Time.deltaTime / 2;  
             healthImpact.color = imageColor;
             yield return null;
         }

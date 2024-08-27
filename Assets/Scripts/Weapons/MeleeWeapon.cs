@@ -9,12 +9,12 @@ public class MeleeWeapon : MonoBehaviour
     private bool readyToAttack = true;
     public float leftClickAttackDelay = 1.0f;
     public float rightClickAttackDelay = 1.2f;
-    public float hitDelay = 0.1f; // Adjustable delay for HitByProjectile() call
+    public float hitDelay = 0.1f; 
 
     [Header("Attack Settings")]
-    public float attackRange = 2f; // Adjust the attack range as needed
-    public float leftClickDamageAmount = 5f; // Adjust the damage amount as needed
-    public float rightClickDamageAmount = 10f; // Adjust the damage amount as needed
+    public float attackRange = 2f; 
+    public float leftClickDamageAmount = 5f; 
+    public float rightClickDamageAmount = 10f; 
 
     [Header("Audio Settings")]
     public AudioClip leftClickAttackSound;

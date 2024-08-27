@@ -43,16 +43,16 @@ public class AnimationController : MonoBehaviour
         animator.SetTrigger("Shoot");
     }
 
-    
- public void TriggerLeftClickAttack()
-{
-    animator.SetTrigger("LeftClickAttack");
-}
 
-public void TriggerRightClickAttack()
-{
-    animator.SetTrigger("RightClickAttack");
-}
+    public void TriggerLeftClickAttack()
+    {
+        animator.SetTrigger("LeftClickAttack");
+    }
+
+    public void TriggerRightClickAttack()
+    {
+        animator.SetTrigger("RightClickAttack");
+    }
 
 
     public void SetReloading(bool isReloading)

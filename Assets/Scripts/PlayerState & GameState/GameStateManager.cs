@@ -111,14 +111,14 @@ public class GameStateManager : MonoBehaviour
             missionCompleteImage.gameObject.SetActive(true);
         }
 
-               // Unlock the cursor and make it visible
+        // Unlock the cursor and make it visible
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
         // Wait for 3 seconds
         yield return new WaitForSeconds(3f);
 
-         // Clear all saved data
+        // Clear all saved data
         ClearAllSaveData();
 
         // Go back to the main menu

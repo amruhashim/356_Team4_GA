@@ -50,20 +50,20 @@ public class Movement : MonoBehaviour
     }
 
 
-private void Update()
-{
-    if (Cursor.lockState != CursorLockMode.Locked)
+    private void Update()
     {
-        isMoving = false;
-        return;
-    }
+        if (Cursor.lockState != CursorLockMode.Locked)
+        {
+            isMoving = false;
+            return;
+        }
 
-    if (!freezePosition)
-    {
-        PlayerMovement();
-        PlayFootsteps();
+        if (!freezePosition)
+        {
+            PlayerMovement();
+            PlayFootsteps();
+        }
     }
-}
 
 
 

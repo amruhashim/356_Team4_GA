@@ -9,8 +9,8 @@ public class DroneMovement : MonoBehaviour
     private AudioSource droneAudioSource;
 
     // Motor settings
-    [SerializeField] private Transform[] droneMotors; 
-    [SerializeField] private float motorBaseRotationSpeed = 500.0f; 
+    [SerializeField] private Transform[] droneMotors;
+    [SerializeField] private float motorBaseRotationSpeed = 500.0f;
     [SerializeField] private float motorRotationMultiplier = 1.2f;
     private float currentMotorRotationSpeed = 0.0f;
 
@@ -74,7 +74,7 @@ public class DroneMovement : MonoBehaviour
     // Handles vertical movement (up and down)
     void HandleVerticalMovement()
     {
-        if (Mathf.Abs(Input.GetAxis("Vertical")) > 0.2f || Mathf.Abs(Input.GetAxis("Horizontal")) > 0.2f) 
+        if (Mathf.Abs(Input.GetAxis("Vertical")) > 0.2f || Mathf.Abs(Input.GetAxis("Horizontal")) > 0.2f)
         {
             if (Input.GetKey(KeyCode.I) || Input.GetKey(KeyCode.K))
             {

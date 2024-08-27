@@ -17,40 +17,40 @@ public class GrenadeManager : MonoBehaviour
 
     public int MaxGrenades { get { return maxGrenades; } }
 
-void Start()
-{
-    animator = GetComponent<Animator>();
-    currentGrenades = PlayerState.Instance.grenadeCount;
-
-    // Lock the cursor at the start of the game
-    Cursor.lockState = CursorLockMode.Locked;
-    Cursor.visible = false;
-
-    // Update the grenade display at the start
-    AmmoManager.Instance.UpdateGrenadeDisplay(currentGrenades);
-
-    animationController = GetComponent<AnimationController>();
-}
-
-
-void Update()
-{
-    // Only process input if the cursor is locked
-    if (Cursor.lockState != CursorLockMode.Locked) return;
-
-    if (Input.GetMouseButtonDown(0) && canThrow && currentGrenades > 0)
+    void Start()
     {
-        NormalThrow();
+        animator = GetComponent<Animator>();
+        currentGrenades = PlayerState.Instance.grenadeCount;
+
+        // Lock the cursor at the start of the game
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+
+        // Update the grenade display at the start
+        AmmoManager.Instance.UpdateGrenadeDisplay(currentGrenades);
+
+        animationController = GetComponent<AnimationController>();
     }
-    else if (Input.GetMouseButtonUp(0) && isHoldingGrenade)
+
+
+    void Update()
     {
-        ReleaseGrenade();
+        // Only process input if the cursor is locked
+        if (Cursor.lockState != CursorLockMode.Locked) return;
+
+        if (Input.GetMouseButtonDown(0) && canThrow && currentGrenades > 0)
+        {
+            NormalThrow();
+        }
+        else if (Input.GetMouseButtonUp(0) && isHoldingGrenade)
+        {
+            ReleaseGrenade();
+        }
+        else if (Input.GetMouseButtonDown(1) && canThrow && currentGrenades > 0)
+        {
+            QuickThrow();
+        }
     }
-    else if (Input.GetMouseButtonDown(1) && canThrow && currentGrenades > 0)
-    {
-        QuickThrow();
-    }
-}
 
 
     void NormalThrow()

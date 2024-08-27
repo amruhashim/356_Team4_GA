@@ -5,7 +5,7 @@ public class AudioMixerController : MonoBehaviour
 {
     public static AudioMixerController Instance { get; private set; }
     public AudioMixer masterMixer;  // Reference to the AudioMixer
-     
+
     private void Awake()
     {
         if (Instance != null && Instance != this)

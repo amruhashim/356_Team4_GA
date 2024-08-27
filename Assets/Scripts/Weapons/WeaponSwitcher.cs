@@ -141,41 +141,41 @@ public class WeaponSwitcher : MonoBehaviour
         }
     }
 
-private void HandleInput()
-{
-    // Switch to grenade hand if 'G' is pressed and grenade hand is not active
-    if (Input.GetKeyDown(KeyCode.G))
+    private void HandleInput()
     {
-        // Always switch to grenade hand, even if melee weapon is active
-        SwitchToGrenadeHand();
-    }
-    // Handle mouse scroll to switch between grenade hand, melee weapon, and current weapon
-    else if (Input.GetAxis("Mouse ScrollWheel") != 0)
-    {
-        CycleWeapons();
-    }
-
-    // Switch back to the current weapon if '1' is pressed and grenade hand or melee weapon is active
-    if (Input.GetKeyDown(KeyCode.Alpha1))
-    {
-        if (isGrenadeActive || meleeWeaponInstance != null)
+        // Switch to grenade hand if 'G' is pressed and grenade hand is not active
+        if (Input.GetKeyDown(KeyCode.G))
         {
-            SwitchToCurrentWeapon();
+            // Always switch to grenade hand, even if melee weapon is active
+            SwitchToGrenadeHand();
+        }
+        // Handle mouse scroll to switch between grenade hand, melee weapon, and current weapon
+        else if (Input.GetAxis("Mouse ScrollWheel") != 0)
+        {
+            CycleWeapons();
+        }
+
+        // Switch back to the current weapon if '1' is pressed and grenade hand or melee weapon is active
+        if (Input.GetKeyDown(KeyCode.Alpha1))
+        {
+            if (isGrenadeActive || meleeWeaponInstance != null)
+            {
+                SwitchToCurrentWeapon();
+            }
+        }
+
+        // Switch to melee weapon if '2' is pressed
+        if (Input.GetKeyDown(KeyCode.Alpha2))
+        {
+            SwitchToMeleeWeapon();
+        }
+
+        // Toggle the drone on/off when 'Q' is pressed
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            ToggleDrone();
         }
     }
-
-    // Switch to melee weapon if '2' is pressed
-    if (Input.GetKeyDown(KeyCode.Alpha2))
-    {
-        SwitchToMeleeWeapon();
-    }
-
-    // Toggle the drone on/off when 'Q' is pressed
-    if (Input.GetKeyDown(KeyCode.Q))
-    {
-        ToggleDrone();
-    }
-}
 
 
     private void CycleWeapons()
@@ -209,150 +209,150 @@ private void HandleInput()
         }
     }
 
-   private void SwitchWeapon(GameObject weaponPrefab, bool isLoadingGame = false)
-{
-    // Toggle off the drone if it's active
-    if (isDroneActive)
+    private void SwitchWeapon(GameObject weaponPrefab, bool isLoadingGame = false)
     {
-        ToggleDrone();
-    }
-
-    if (currentWeapon != null)
-    {
-        Destroy(currentWeapon.gameObject);
-    }
-
-    if (isGrenadeActive)
-    {
-        grenadeHandInstance.SetActive(false);
-        isGrenadeActive = false;
-    }
-
-    if (meleeWeaponInstance != null)
-    {
-        Destroy(meleeWeaponInstance);
-        meleeWeaponInstance = null;
-    }
-
-    GameObject newWeapon = Instantiate(weaponPrefab, handHolder);
-    newWeapon.transform.localPosition = new Vector3(0, -1.45899999f, -0.479999989f);
-    newWeapon.transform.localRotation = Quaternion.identity;
-
-    currentWeapon = newWeapon.GetComponent<Weapon>();
-    currentWeapon.playerCamera = mainCamera;
-
-    AnimationController animationController = newWeapon.GetComponent<AnimationController>();
-    if (animationController != null)
-    {
-        animationController.movementScript = playerMovement;
-    }
-
-    if (isLoadingGame)
-    {
-        currentWeapon.LoadBulletsFromPlayerState();
-    }
-    else
-    {
-        currentWeapon.ResetBullets();
-        PlayerState.Instance.activeWeaponID = currentWeapon.weaponID;
-    }
-
-    AmmoManager.Instance.UpdateAmmoDisplay(currentWeapon);
-    AmmoManager.Instance.ammoDisplay.gameObject.SetActive(true);
-    AmmoManager.Instance.grenadeDisplay.gameObject.SetActive(false);
-}
-
-private void SwitchToMeleeWeapon()
-{
-    // Toggle off the drone if it's active
-    if (isDroneActive)
-    {
-        ToggleDrone();
-    }
-
-    if (meleeWeaponInstance != null) return;
-
-    if (isGrenadeActive)
-    {
-        grenadeHandInstance.SetActive(false);
-        isGrenadeActive = false;
-    }
-
-    if (currentWeapon != null)
-    {
-        Destroy(currentWeapon.gameObject);
-    }
-
-    if (weaponDictionary.TryGetValue(meleeWeaponID, out WeaponEntry meleeWeaponEntry))
-    {
-        meleeWeaponInstance = Instantiate(meleeWeaponEntry.weaponPrefab, handHolder);
-        meleeWeaponInstance.transform.localPosition = new Vector3(0, -1.45899999f, -0.479999989f);
-        meleeWeaponInstance.transform.localRotation = Quaternion.identity;
-
-        AnimationController meleeAnimationController = meleeWeaponInstance.GetComponent<AnimationController>();
-        if (meleeAnimationController != null)
+        // Toggle off the drone if it's active
+        if (isDroneActive)
         {
-            meleeAnimationController.movementScript = playerMovement;
+            ToggleDrone();
         }
 
-        // Highlight the melee weapon icon using its sprite
-        AmmoManager.Instance.HighlightMeleeWeaponIcon(meleeWeaponEntry.weaponIcon);
-        AmmoManager.Instance.ammoDisplay.gameObject.SetActive(false);
+        if (currentWeapon != null)
+        {
+            Destroy(currentWeapon.gameObject);
+        }
+
+        if (isGrenadeActive)
+        {
+            grenadeHandInstance.SetActive(false);
+            isGrenadeActive = false;
+        }
+
+        if (meleeWeaponInstance != null)
+        {
+            Destroy(meleeWeaponInstance);
+            meleeWeaponInstance = null;
+        }
+
+        GameObject newWeapon = Instantiate(weaponPrefab, handHolder);
+        newWeapon.transform.localPosition = new Vector3(0, -1.45899999f, -0.479999989f);
+        newWeapon.transform.localRotation = Quaternion.identity;
+
+        currentWeapon = newWeapon.GetComponent<Weapon>();
+        currentWeapon.playerCamera = mainCamera;
+
+        AnimationController animationController = newWeapon.GetComponent<AnimationController>();
+        if (animationController != null)
+        {
+            animationController.movementScript = playerMovement;
+        }
+
+        if (isLoadingGame)
+        {
+            currentWeapon.LoadBulletsFromPlayerState();
+        }
+        else
+        {
+            currentWeapon.ResetBullets();
+            PlayerState.Instance.activeWeaponID = currentWeapon.weaponID;
+        }
+
+        AmmoManager.Instance.UpdateAmmoDisplay(currentWeapon);
+        AmmoManager.Instance.ammoDisplay.gameObject.SetActive(true);
         AmmoManager.Instance.grenadeDisplay.gameObject.SetActive(false);
     }
-    else
+
+    private void SwitchToMeleeWeapon()
     {
-        Debug.LogWarning("Melee weapon ID not found in dictionary: " + meleeWeaponID);
-    }
-}
-
-private void SwitchToGrenadeHand()
-{
-    // Toggle off the drone if it's active
-    if (isDroneActive)
-    {
-        ToggleDrone();
-    }
-
-    if (grenadeHandInstance != null) return;
-
-    if (meleeWeaponInstance != null)
-    {
-        Destroy(meleeWeaponInstance);
-        meleeWeaponInstance = null;
-    }
-
-    if (currentWeapon != null)
-    {
-        currentWeapon.gameObject.SetActive(false);
-    }
-
-    if (weaponDictionary.TryGetValue(grenadeWeaponID, out WeaponEntry grenadeWeaponEntry))
-    {
-        grenadeHandInstance = Instantiate(grenadeWeaponEntry.weaponPrefab, handHolder);
-        grenadeHandInstance.transform.localPosition = new Vector3(0, -1.45899999f, -0.479999989f);
-        grenadeHandInstance.transform.localRotation = Quaternion.identity;
-
-        AnimationController grenadeAnimationController = grenadeHandInstance.GetComponent<AnimationController>();
-        if (grenadeAnimationController != null)
+        // Toggle off the drone if it's active
+        if (isDroneActive)
         {
-            grenadeAnimationController.movementScript = playerMovement;
+            ToggleDrone();
         }
 
-        grenadeHandInstance.SetActive(true);
-        isGrenadeActive = true;
+        if (meleeWeaponInstance != null) return;
 
-        // Highlight the grenade icon using its sprite
-        AmmoManager.Instance.HighlightGrenadeIcon(grenadeWeaponEntry.weaponIcon);
-        AmmoManager.Instance.UpdateGrenadeDisplay(PlayerState.Instance.grenadeCount);
-        AmmoManager.Instance.ammoDisplay.gameObject.SetActive(false);
-        AmmoManager.Instance.grenadeDisplay.gameObject.SetActive(true);
+        if (isGrenadeActive)
+        {
+            grenadeHandInstance.SetActive(false);
+            isGrenadeActive = false;
+        }
+
+        if (currentWeapon != null)
+        {
+            Destroy(currentWeapon.gameObject);
+        }
+
+        if (weaponDictionary.TryGetValue(meleeWeaponID, out WeaponEntry meleeWeaponEntry))
+        {
+            meleeWeaponInstance = Instantiate(meleeWeaponEntry.weaponPrefab, handHolder);
+            meleeWeaponInstance.transform.localPosition = new Vector3(0, -1.45899999f, -0.479999989f);
+            meleeWeaponInstance.transform.localRotation = Quaternion.identity;
+
+            AnimationController meleeAnimationController = meleeWeaponInstance.GetComponent<AnimationController>();
+            if (meleeAnimationController != null)
+            {
+                meleeAnimationController.movementScript = playerMovement;
+            }
+
+            // Highlight the melee weapon icon using its sprite
+            AmmoManager.Instance.HighlightMeleeWeaponIcon(meleeWeaponEntry.weaponIcon);
+            AmmoManager.Instance.ammoDisplay.gameObject.SetActive(false);
+            AmmoManager.Instance.grenadeDisplay.gameObject.SetActive(false);
+        }
+        else
+        {
+            Debug.LogWarning("Melee weapon ID not found in dictionary: " + meleeWeaponID);
+        }
     }
-    else
+
+    private void SwitchToGrenadeHand()
     {
-        Debug.LogWarning("Grenade weapon ID not found in dictionary: " + grenadeWeaponID);
+        // Toggle off the drone if it's active
+        if (isDroneActive)
+        {
+            ToggleDrone();
+        }
+
+        if (grenadeHandInstance != null) return;
+
+        if (meleeWeaponInstance != null)
+        {
+            Destroy(meleeWeaponInstance);
+            meleeWeaponInstance = null;
+        }
+
+        if (currentWeapon != null)
+        {
+            currentWeapon.gameObject.SetActive(false);
+        }
+
+        if (weaponDictionary.TryGetValue(grenadeWeaponID, out WeaponEntry grenadeWeaponEntry))
+        {
+            grenadeHandInstance = Instantiate(grenadeWeaponEntry.weaponPrefab, handHolder);
+            grenadeHandInstance.transform.localPosition = new Vector3(0, -1.45899999f, -0.479999989f);
+            grenadeHandInstance.transform.localRotation = Quaternion.identity;
+
+            AnimationController grenadeAnimationController = grenadeHandInstance.GetComponent<AnimationController>();
+            if (grenadeAnimationController != null)
+            {
+                grenadeAnimationController.movementScript = playerMovement;
+            }
+
+            grenadeHandInstance.SetActive(true);
+            isGrenadeActive = true;
+
+            // Highlight the grenade icon using its sprite
+            AmmoManager.Instance.HighlightGrenadeIcon(grenadeWeaponEntry.weaponIcon);
+            AmmoManager.Instance.UpdateGrenadeDisplay(PlayerState.Instance.grenadeCount);
+            AmmoManager.Instance.ammoDisplay.gameObject.SetActive(false);
+            AmmoManager.Instance.grenadeDisplay.gameObject.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("Grenade weapon ID not found in dictionary: " + grenadeWeaponID);
+        }
     }
-}
 
 
 
