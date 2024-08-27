@@ -9,25 +9,24 @@ public class MainMenu : MonoBehaviour
     public Button LoadGameBTN;
 
     // Paths to check and delete save game files
-    private string jsonPathPersistent;
-    private string binaryPath;
+    private string jsonSaveGamePath;
+    private string binarySaveGamePath;
 
     // Paths to check and delete settings files (using Protobuf now)
-    private string settingsProtoPath;
+    private string volumeSettingsProtoPath;
 
     // Paths to check and delete sensitivity files (using Protobuf now)
-    private string sensitivityProtoPath;
+    private string sensitivitySettingsProtoPath;
 
     private void Awake()
     {
-        settingsProtoPath = Path.Combine(Application.persistentDataPath, "settings.proto");
-        sensitivityProtoPath = Path.Combine(Application.persistentDataPath, "sensitivity.proto");
+        // Initialize paths
+        volumeSettingsProtoPath = Path.Combine(Application.persistentDataPath, "volumeSettings.proto");
+        sensitivitySettingsProtoPath = Path.Combine(Application.persistentDataPath, "sensitivitySettings.proto");
 
         Debug.Log("Paths initialized in Awake:");
-        Debug.Log($"jsonPathPersistent: {jsonPathPersistent}");
-        Debug.Log($"binaryPath: {binaryPath}");
-        Debug.Log($"settingsProtoPath: {settingsProtoPath}");
-        Debug.Log($"sensitivityProtoPath: {sensitivityProtoPath}");
+        Debug.Log($"volumeSettingsProtoPath: {volumeSettingsProtoPath}");
+        Debug.Log($"sensitivitySettingsProtoPath: {sensitivitySettingsProtoPath}");
     }
 
     private void Start()

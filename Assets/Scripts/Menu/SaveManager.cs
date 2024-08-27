@@ -8,14 +8,14 @@ public class SaveManager : MonoBehaviour
     public static SaveManager Instance { get; private set; }
 
     // Paths for saving game data
-    private string jsonPathPersistent;
-    private string binaryPath;
+    private string jsonSaveGamePath;
+    private string binarySaveGamePath;
 
     // Paths for saving settings data
-    private string settingsProtoPath;
+    private string volumeSettingsProtoPath;
 
     // Paths for saving sensitivity data
-    private string sensitivityProtoPath;
+    private string sensitivitySettingsProtoPath;
 
     // Path for saving save status data
     private string saveStatusProtoPath;
@@ -64,26 +64,26 @@ public class SaveManager : MonoBehaviour
 
     private void InitializePaths()
     {
-        jsonPathPersistent = Path.Combine(Application.persistentDataPath, "SaveGame.json");
-        binaryPath = Path.Combine(Application.persistentDataPath, "save_game.bin");
+        jsonSaveGamePath = Path.Combine(Application.persistentDataPath, "saveGame.json");
+        binarySaveGamePath = Path.Combine(Application.persistentDataPath, "saveGame.bin");
 
-        settingsProtoPath = Path.Combine(Application.persistentDataPath, "settings.proto");
-        sensitivityProtoPath = Path.Combine(Application.persistentDataPath, "sensitivity.proto");
+        volumeSettingsProtoPath = Path.Combine(Application.persistentDataPath, "volumeSettings.proto");
+        sensitivitySettingsProtoPath = Path.Combine(Application.persistentDataPath, "sensitivitySettings.proto");
 
         // Path for saving the save status
-        saveStatusProtoPath = Path.Combine(Application.persistentDataPath, "savestatus.proto");
+        saveStatusProtoPath = Path.Combine(Application.persistentDataPath, "saveStatus.proto");
     }
 
     private void InitializeSettingsFiles()
     {
-        // Check if settings file exists, if not create it with default settings
-        if (!File.Exists(settingsProtoPath))
+        // Check if volume settings file exists, if not create it with default settings
+        if (!File.Exists(volumeSettingsProtoPath))
         {
             SaveVolumeSettings(1.0f, 1.0f, 1.0f);
         }
 
-        // Check if sensitivity file exists, if not create it with default settings
-        if (!File.Exists(sensitivityProtoPath))
+        // Check if sensitivity settings file exists, if not create it with default settings
+        if (!File.Exists(sensitivitySettingsProtoPath))
         {
             SaveSensitivitySettings(new SerializableVector2(1.0f, 1.0f), 2.5f); // Default drone sensitivity of 2.5
         }
@@ -112,22 +112,21 @@ public class SaveManager : MonoBehaviour
         Debug.Log("Save status updated using protobuf-net");
     }
 
-public bool LoadSaveStatus()
-{
-    if (File.Exists(saveStatusProtoPath))
+    public bool LoadSaveStatus()
     {
-        using (FileStream file = File.OpenRead(saveStatusProtoPath))
+        if (File.Exists(saveStatusProtoPath))
         {
-            SaveStatus saveStatus = Serializer.Deserialize<SaveStatus>(file);
-            return saveStatus.SaveFileExists;
+            using (FileStream file = File.OpenRead(saveStatusProtoPath))
+            {
+                SaveStatus saveStatus = Serializer.Deserialize<SaveStatus>(file);
+                return saveStatus.SaveFileExists;
+            }
         }
+
+        // Return false as the default if the file doesn't exist or is not initialized
+        Debug.LogWarning("Save status file not found. Assuming no save file exists.");
+        return false;
     }
-
-    // Return false as the default if the file doesn't exist or is not initialized
-    Debug.LogWarning("Save status file not found. Assuming no save file exists.");
-    return false;
-}
-
     #endregion
 
     #region Save and Load Game Data
@@ -139,7 +138,7 @@ public bool LoadSaveStatus()
         string jsonData = JsonUtility.ToJson(PlayerState.Instance);
 
         // Save Binary file
-        FileInfo binaryFileInfo = new FileInfo(binaryPath);
+        FileInfo binaryFileInfo = new FileInfo(binarySaveGamePath);
         using (FileStream fileStream = binaryFileInfo.Create())
         {
             using (BinaryWriter binaryWriter = new BinaryWriter(fileStream))
@@ -185,8 +184,8 @@ public bool LoadSaveStatus()
     public void ClearSaveGame()
     {
         // Delete save files
-        if (File.Exists(jsonPathPersistent)) File.Delete(jsonPathPersistent);
-        if (File.Exists(binaryPath)) File.Delete(binaryPath);
+        if (File.Exists(jsonSaveGamePath)) File.Delete(jsonSaveGamePath);
+        if (File.Exists(binarySaveGamePath)) File.Delete(binarySaveGamePath);
 
         // Update save status to false
         UpdateSaveStatus(false);
@@ -217,7 +216,7 @@ public bool LoadSaveStatus()
         };
 
         // Save using protobuf-net
-        using (FileStream file = File.Create(settingsProtoPath))
+        using (FileStream file = File.Create(volumeSettingsProtoPath))
         {
             Serializer.Serialize(file, volumeSettings);
         }
@@ -227,16 +226,16 @@ public bool LoadSaveStatus()
 
     public VolumeSettings LoadVolumeSettings()
     {
-        if (File.Exists(settingsProtoPath))
+        if (File.Exists(volumeSettingsProtoPath))
         {
-            using (FileStream file = File.OpenRead(settingsProtoPath))
+            using (FileStream file = File.OpenRead(volumeSettingsProtoPath))
             {
                 return Serializer.Deserialize<VolumeSettings>(file);
             }
         }
         else
         {
-            Debug.Log("No settings file found, using default settings.");
+            Debug.Log("No volume settings file found, using default settings.");
             return new VolumeSettings { music = 1.0f, effects = 1.0f, master = 1.0f };
         }
     }
@@ -309,7 +308,7 @@ public bool LoadSaveStatus()
         SensitivitySettings sensitivitySettings = new SensitivitySettings(mouseSensitivity, droneSensitivity);
 
         // Save using protobuf-net
-        using (FileStream file = File.Create(sensitivityProtoPath))
+        using (FileStream file = File.Create(sensitivitySettingsProtoPath))
         {
             Serializer.Serialize(file, sensitivitySettings);
         }
@@ -319,16 +318,16 @@ public bool LoadSaveStatus()
 
     public SensitivitySettings LoadSensitivitySettings()
     {
-        if (File.Exists(sensitivityProtoPath))
+        if (File.Exists(sensitivitySettingsProtoPath))
         {
-            using (FileStream file = File.OpenRead(sensitivityProtoPath))
+            using (FileStream file = File.OpenRead(sensitivitySettingsProtoPath))
             {
                 return Serializer.Deserialize<SensitivitySettings>(file);
             }
         }
         else
         {
-            Debug.Log("No sensitivity file found, using default settings.");
+            Debug.Log("No sensitivity settings file found, using default settings.");
             return new SensitivitySettings(new SerializableVector2(1.0f, 1.0f), 2.5f); // Default drone sensitivity of 2.5
         }
     }
