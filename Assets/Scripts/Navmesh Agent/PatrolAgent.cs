@@ -306,23 +306,34 @@ public class PatrolAgent : MonoBehaviour
     }
 
     private void HandleDeath()
+{
+    Debug.Log($"[HandleDeath] PatrolAgent {uniqueID} has died.");
+    StopAllCoroutines();
+    
+    // Check if the agent is on a NavMesh before stopping it
+    if (agent != null && agent.isOnNavMesh)
     {
-        Debug.Log($"[HandleDeath] PatrolAgent {uniqueID} has died.");
-        StopAllCoroutines();
         agent.isStopped = true;
-        animator.SetBool("isWalking", false);
-        animator.Rebind();
-        audioSource.PlayOneShot(deathSound);
-
-        // Mark this AI as dead in PlayerState with health 0
-        PlayerState.Instance?.UpdateAIState(uniqueID, true, 0);
-        Debug.Log($"[HandleDeath] PatrolAgent {uniqueID} state updated in PlayerState.");
-
-        healthBarBackground.color = Color.red;
-        UpdateHealthBar();
-
-        gameObject.SetActive(false); // Deactivate the AI immediately without delay
     }
+    else
+    {
+        Debug.LogWarning($"[HandleDeath] PatrolAgent {uniqueID} is not on a NavMesh. Skipping agent stop.");
+    }
+
+    animator.SetBool("isWalking", false);
+    animator.Rebind(); // Reset animator to default state
+    audioSource.PlayOneShot(deathSound);
+
+    // Mark this AI as dead in PlayerState with health 0
+    PlayerState.Instance?.UpdateAIState(uniqueID, true, 0);
+    Debug.Log($"[HandleDeath] PatrolAgent {uniqueID} state updated in PlayerState.");
+
+    healthBarBackground.color = Color.red;
+    UpdateHealthBar();
+
+    gameObject.SetActive(false); // Deactivate the AI immediately without delay
+}
+
 
     public void ResetHealth(float health)
     {
