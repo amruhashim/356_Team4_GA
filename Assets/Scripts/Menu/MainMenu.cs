@@ -9,21 +9,36 @@ public class MainMenu : MonoBehaviour
     public Button LoadGameBTN;
 
     // Paths to check and delete save game files
-    private string jsonPathProject;
     private string jsonPathPersistent;
     private string binaryPath;
 
+    // Paths to check and delete settings files
+    private string settingsJsonPathPersistent;
+    private string settingsBinaryPath;
+
+    // Paths to check and delete sensitivity files
+    private string sensitivityJsonPathPersistent;
+    private string sensitivityBinaryPath;
+
     private void Start()
     {
-        // Define the paths where your save files might be stored
-        jsonPathProject = Application.dataPath + Path.AltDirectorySeparatorChar + "SaveGame.json";
-        jsonPathPersistent = Application.persistentDataPath + Path.AltDirectorySeparatorChar + "SaveGame.json";
-        binaryPath = Application.persistentDataPath + Path.AltDirectorySeparatorChar + "save_game.bin";
+        // Define the paths where your save, settings, and sensitivity files might be stored
+        jsonPathPersistent = Path.Combine(Application.persistentDataPath, "SaveGame.json");
+        binaryPath = Path.Combine(Application.persistentDataPath, "save_game.bin");
+
+        settingsJsonPathPersistent = Path.Combine(Application.persistentDataPath, "Settings.json");
+        settingsBinaryPath = Path.Combine(Application.persistentDataPath, "settings.bin");
+
+        sensitivityJsonPathPersistent = Path.Combine(Application.persistentDataPath, "Sensitivity.json");
+        sensitivityBinaryPath = Path.Combine(Application.persistentDataPath, "sensitivity.bin");
+
+        // Load and apply settings and sensitivity
+        LoadAndApplySettingsAndSensitivity();
 
         // Initially hide the Load Game button
         LoadGameBTN.gameObject.SetActive(false);
 
-        // Add the LoadGame button listener
+        // Add the Load Game button listener
         LoadGameBTN.onClick.AddListener(() =>
         {
             SaveManager.Instance.StartLoadedGame(sceneName);  // Pass the sceneName from MainMenu
@@ -55,13 +70,15 @@ public class MainMenu : MonoBehaviour
     // Method to check if a save file exists
     private bool SaveFileExists()
     {
-        bool jsonExistsInProject = File.Exists(jsonPathProject);
         bool jsonExistsInPersistent = File.Exists(jsonPathPersistent);
         bool binaryExists = File.Exists(binaryPath);
 
-        Debug.Log($"Checking save files: JSON in Project exists: {jsonExistsInProject}, JSON in Persistent exists: {jsonExistsInPersistent}, Binary exists: {binaryExists}");
+        bool settingsJsonExists = File.Exists(settingsJsonPathPersistent);
+        bool sensitivityJsonExists = File.Exists(sensitivityJsonPathPersistent);
 
-        return jsonExistsInProject || jsonExistsInPersistent || binaryExists;
+        Debug.Log($"Checking save files: JSON in Persistent exists: {jsonExistsInPersistent}, Binary exists: {binaryExists}, Settings JSON exists: {settingsJsonExists}, Sensitivity JSON exists: {sensitivityJsonExists}");
+
+        return jsonExistsInPersistent || binaryExists || settingsJsonExists || sensitivityJsonExists;
     }
 
     // Method to update the state of the Load Game button
@@ -87,13 +104,6 @@ public class MainMenu : MonoBehaviour
         PlayerPrefs.Save();
         Debug.Log("All PlayerPrefs data cleared.");
 
-        // Delete the JSON save file in project path if it exists
-        if (File.Exists(jsonPathProject))
-        {
-            File.Delete(jsonPathProject);
-            Debug.Log("Project SaveGame.json file deleted.");
-        }
-
         // Delete the JSON save file in persistent path if it exists
         if (File.Exists(jsonPathPersistent))
         {
@@ -107,7 +117,19 @@ public class MainMenu : MonoBehaviour
             File.Delete(binaryPath);
             Debug.Log("save_game.bin file deleted.");
         }
+    }
 
-        Debug.Log("All save game files cleared.");
+    // Method to load and apply settings and sensitivity data
+    private void LoadAndApplySettingsAndSensitivity()
+    {
+        if (SaveManager.Instance != null)
+        {
+            SaveManager.Instance.LoadAndApplyVolumeSettings();   // Load and apply volume settings
+            SaveManager.Instance.LoadAndApplySensitivitySettings();   // Load and apply sensitivity settings
+        }
+        else
+        {
+            Debug.LogError("SaveManager instance is not found. Settings and sensitivity could not be loaded.");
+        }
     }
 }

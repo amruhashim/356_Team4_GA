@@ -7,17 +7,14 @@ public class SaveManager : MonoBehaviour
     public static SaveManager Instance { get; private set; }
 
     // Paths for saving game data
-    private string jsonPathProject;
     private string jsonPathPersistent;
     private string binaryPath;
 
     // Paths for saving settings data
-    private string settingsJsonPathProject;
     private string settingsJsonPathPersistent;
     private string settingsBinaryPath;
 
     // Paths for saving sensitivity data
-    private string sensitivityJsonPathProject;
     private string sensitivityJsonPathPersistent;
     private string sensitivityBinaryPath;
 
@@ -72,30 +69,24 @@ public class SaveManager : MonoBehaviour
 
     private void InitializePaths()
     {
-        jsonPathProject = Application.dataPath + Path.AltDirectorySeparatorChar + "SaveGame.json";
-        jsonPathPersistent = Application.persistentDataPath + Path.AltDirectorySeparatorChar + "SaveGame.json";
-        binaryPath = Application.persistentDataPath + "/save_game.bin";
+        jsonPathPersistent = Path.Combine(Application.persistentDataPath, "SaveGame.json");
+        binaryPath = Path.Combine(Application.persistentDataPath, "save_game.bin");
 
-        settingsJsonPathProject = Application.dataPath + Path.AltDirectorySeparatorChar + "Settings.json";
-        settingsJsonPathPersistent = Application.persistentDataPath + Path.AltDirectorySeparatorChar + "Settings.json";
-        settingsBinaryPath = Application.persistentDataPath + "/settings.bin";
+        settingsJsonPathPersistent = Path.Combine(Application.persistentDataPath, "Settings.json");
+        settingsBinaryPath = Path.Combine(Application.persistentDataPath, "settings.bin");
 
-        sensitivityJsonPathProject = Application.dataPath + Path.AltDirectorySeparatorChar + "Sensitivity.json";
-        sensitivityJsonPathPersistent = Application.persistentDataPath + Path.AltDirectorySeparatorChar + "Sensitivity.json";
-        sensitivityBinaryPath = Application.persistentDataPath + "/sensitivity.bin";
+        sensitivityJsonPathPersistent = Path.Combine(Application.persistentDataPath, "Sensitivity.json");
+        sensitivityBinaryPath = Path.Combine(Application.persistentDataPath, "sensitivity.bin");
 
         // Debugging the paths
         Debug.Log("Paths initialized:");
-        Debug.Log($"jsonPathProject: {jsonPathProject}");
         Debug.Log($"jsonPathPersistent: {jsonPathPersistent}");
         Debug.Log($"binaryPath: {binaryPath}");
-        Debug.Log($"settingsJsonPathProject: {settingsJsonPathProject}");
         Debug.Log($"settingsJsonPathPersistent: {settingsJsonPathPersistent}");
         Debug.Log($"settingsBinaryPath: {settingsBinaryPath}");
-        Debug.Log($"sensitivityJsonPathProject: {sensitivityJsonPathProject}");
         Debug.Log($"sensitivityJsonPathPersistent: {sensitivityJsonPathPersistent}");
         Debug.Log($"sensitivityBinaryPath: {sensitivityBinaryPath}");
-    } 
+    }
 
     private void InitializeSettingsFiles()
     {
@@ -119,7 +110,6 @@ public class SaveManager : MonoBehaviour
 
         Debug.Log("Saving game data...");
         string jsonData = JsonUtility.ToJson(PlayerState.Instance);
-        File.WriteAllText(jsonPathProject, jsonData);
         File.WriteAllText(jsonPathPersistent, jsonData);
 
         using (FileStream fileStream = new FileStream(binaryPath, FileMode.Create))
@@ -170,36 +160,35 @@ public class SaveManager : MonoBehaviour
         public float master;
     }
 
-public void SaveVolumeSettings(float master, float music, float effects)
-{
-    if (string.IsNullOrEmpty(settingsJsonPathPersistent))
+    public void SaveVolumeSettings(float master, float music, float effects)
     {
-        Debug.LogError("Settings path is not initialized.");
-        return;
-    }
-
-    VolumeSettings volumeSettings = new VolumeSettings
-    {
-        master = master,
-        music = music,
-        effects = effects,
-    };
-
-    string settingsJson = JsonUtility.ToJson(volumeSettings);
-
-    File.WriteAllText(settingsJsonPathPersistent, settingsJson);
-
-    using (FileStream fileStream = new FileStream(settingsBinaryPath, FileMode.Create))
-    {
-        using (BinaryWriter binaryWriter = new BinaryWriter(fileStream))
+        if (string.IsNullOrEmpty(settingsJsonPathPersistent))
         {
-            binaryWriter.Write(settingsJson);
+            Debug.LogError("Settings path is not initialized.");
+            return;
         }
+
+        VolumeSettings volumeSettings = new VolumeSettings
+        {
+            master = master,
+            music = music,
+            effects = effects,
+        };
+
+        string settingsJson = JsonUtility.ToJson(volumeSettings);
+
+        File.WriteAllText(settingsJsonPathPersistent, settingsJson);
+
+        using (FileStream fileStream = new FileStream(settingsBinaryPath, FileMode.Create))
+        {
+            using (BinaryWriter binaryWriter = new BinaryWriter(fileStream))
+            {
+                binaryWriter.Write(settingsJson);
+            }
+        }
+
+        Debug.Log("Volume settings saved successfully.");
     }
-
-    Debug.Log("Volume settings saved successfully.");
-}
-
 
     public VolumeSettings LoadVolumeSettings()
     {
@@ -252,7 +241,6 @@ public void SaveVolumeSettings(float master, float music, float effects)
         string sensitivityJson = JsonUtility.ToJson(sensitivitySettings);
 
         Debug.Log($"Saving sensitivity settings: Mouse X: {mouseSensitivity.x}, Mouse Y: {mouseSensitivity.y}, Drone: {droneSensitivity}");
-        File.WriteAllText(sensitivityJsonPathProject, sensitivityJson);
         File.WriteAllText(sensitivityJsonPathPersistent, sensitivityJson);
 
         using (FileStream fileStream = new FileStream(sensitivityBinaryPath, FileMode.Create))
@@ -310,10 +298,7 @@ public void SaveVolumeSettings(float master, float music, float effects)
     // Assign scene-specific references for CameraLook and DroneMovement
     private void AssignSceneSpecificReferences()
     {
-        if (SceneManager.GetActiveScene().name == "YourSceneName") // Replace "YourSceneName" with the actual scene name
-        {
-            cameraLook = FindObjectOfType<CameraLook>();
-            droneMovement = FindObjectOfType<DroneMovement>();
-        }
+        cameraLook = FindObjectOfType<CameraLook>();
+        droneMovement = FindObjectOfType<DroneMovement>();
     }
 }
