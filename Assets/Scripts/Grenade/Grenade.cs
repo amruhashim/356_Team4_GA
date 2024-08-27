@@ -82,16 +82,7 @@ public class Grenade : MonoBehaviour
             }
 
             // Change color of any object with tag "Breakable" within the radius
-            if (nearbyObject.CompareTag("Breakable"))
-            {
-                Renderer objectRenderer = nearbyObject.GetComponent<Renderer>();
-                if (objectRenderer != null)
-                {
-                    objectRenderer.material.color = new Color(
-                        Random.value, Random.value, Random.value
-                    );
-                }
-            }
+           
         }
 
         // Delay the destruction of the game object until the explosion sound has finished playing

@@ -11,8 +11,10 @@ public class HostageManager : MonoBehaviour
     public Transform player; // Reference to the player or the camera
     public float holdTime = 2.0f; // Time required to hold the button to pick up or drop the hostage
     public Slider holdSlider; // Reference to the UI Slider
-    public TextMeshProUGUI warningMessage; // Reference to the TextMeshPro message
+    public TextMeshProUGUI warningMessage; // Reference to the TextMeshPro warning message
+    public TextMeshProUGUI carryingMessage; // Reference to the TextMeshPro for the carrying message
     public TextMeshProUGUI hostageStatusText; // Reference to the TextMeshPro for showing hostage status
+    public float yOffset = 0.5f; // Adjustable Y-axis offset for the hostage position
 
     private float holdTimer = 0f;
     private bool isCarrying = false;
@@ -25,9 +27,10 @@ public class HostageManager : MonoBehaviour
     {
         // Ensure the hostage arm is initially disabled
         hostageArm.SetActive(false);
-        // Ensure the slider and message are initially disabled
+        // Ensure the slider and messages are initially disabled
         holdSlider.gameObject.SetActive(false);
         warningMessage.gameObject.SetActive(false);
+        carryingMessage.gameObject.SetActive(false); // Hide the carrying message initially
 
         // Initialize hostage counts
         totalHostages = FindObjectsOfType<Hostage>().Length;
@@ -120,6 +123,11 @@ public class HostageManager : MonoBehaviour
             isCarrying = true;
             currentHostage.gameObject.SetActive(false);      // Disable the Hostage object
             hostageArm.SetActive(true);    // Enable the hostage arm
+
+            // Show the carrying message
+            carryingMessage.gameObject.SetActive(true);
+            carryingMessage.text = "You are carrying a hostage. Carry them to the rescue helicopter.";
+            
             Debug.Log($"Hostage picked up and disabled. Hostage ID: {currentHostage.UniqueID}");
         }
     }
@@ -130,6 +138,7 @@ public class HostageManager : MonoBehaviour
         {
             isCarrying = false;
             hostageArm.SetActive(false);
+            carryingMessage.gameObject.SetActive(false); // Hide the carrying message when dropping the hostage
 
             // Get the main camera
             Camera mainCamera = Camera.main;
@@ -161,6 +170,9 @@ public class HostageManager : MonoBehaviour
                     }
                 }
             }
+
+            // Apply the Y-axis offset
+            dropPosition.y += yOffset;
 
             // Set the hostage's position
             currentHostage.transform.position = dropPosition;
@@ -197,6 +209,7 @@ public class HostageManager : MonoBehaviour
             currentHostage = null; // Clear the reference
             isCarrying = false;
             hostageArm.SetActive(false);
+            carryingMessage.gameObject.SetActive(false); // Hide the carrying message upon rescue
 
             // Update rescued hostage count and UI
             rescuedHostages++;
@@ -208,7 +221,8 @@ public class HostageManager : MonoBehaviour
     {
         if (hostageStatusText != null)
         {
-            hostageStatusText.text = $"Hostages Rescued: {rescuedHostages}/{totalHostages}";
+            int remainingHostages = totalHostages - rescuedHostages;
+            hostageStatusText.text = $"Rescued: {rescuedHostages}\nRemaining: {remainingHostages}";
         }
     }
 }
