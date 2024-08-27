@@ -4,6 +4,13 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
+    private float damage;
+
+    public void SetDamage(float bulletDamage)
+    {
+        damage = bulletDamage;
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("PatrolAgent"))
@@ -13,27 +20,23 @@ public class Bullet : MonoBehaviour
             PatrolAgent agent = collision.gameObject.GetComponent<PatrolAgent>();
             if (agent != null)
             {
-                agent.HitByProjectile();
+                agent.HitByProjectile(damage);
             }
             Destroy(gameObject);
         }
-
-
-        if (collision.gameObject.CompareTag("Metal"))
+        else if (collision.gameObject.CompareTag("Metal"))
         {
             CreateBulletImpactEffect(collision, GlobalReferences.Instance.bulletImpacteffectMetal);
             print("hit " + collision.gameObject.name + " !");
             Destroy(gameObject);
         }
-
-        if (collision.gameObject.CompareTag("Enviroment"))
+        else if (collision.gameObject.CompareTag("Enviroment"))
         {
             CreateBulletImpactEffect(collision, GlobalReferences.Instance.bulletImpacteffectWall);
             print("hit " + collision.gameObject.name + " !");
             Destroy(gameObject);
         }
     }
-
 
     void CreateBulletImpactEffect(Collision collision, GameObject impactEffectPrefab)
     {

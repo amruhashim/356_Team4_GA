@@ -13,7 +13,8 @@ public class MeleeWeapon : MonoBehaviour
 
     [Header("Attack Settings")]
     public float attackRange = 2f; // Adjust the attack range as needed
-    public float damageAmount = 10f; // Adjust the damage amount as needed
+    public float leftClickDamageAmount = 5f; // Adjust the damage amount as needed
+    public float rightClickDamageAmount = 10f; // Adjust the damage amount as needed
 
     [Header("Audio Settings")]
     public AudioClip leftClickAttackSound;
@@ -59,8 +60,8 @@ public class MeleeWeapon : MonoBehaviour
             audioSource.PlayOneShot(leftClickAttackSound);
         }
 
-        // Call the dealDamage method with half the maxHits as damage
-        DealDamage(0.5f);
+        // Deal damage with left-click damage amount
+        DealDamage(leftClickDamageAmount);
 
         Invoke("ResetAttack", leftClickAttackDelay);
     }
@@ -75,13 +76,13 @@ public class MeleeWeapon : MonoBehaviour
             audioSource.PlayOneShot(rightClickAttackSound);
         }
 
-        // Call the dealDamage method with maxHits as damage
-        DealDamage(1.0f);
+        // Deal damage with right-click damage amount
+        DealDamage(rightClickDamageAmount);
 
         Invoke("ResetAttack", rightClickAttackDelay);
     }
 
-    private void DealDamage(float damageMultiplier)
+    private void DealDamage(float damageAmount)
     {
         RaycastHit hit;
         if (Physics.Raycast(transform.position, transform.forward, out hit, attackRange))
@@ -94,23 +95,19 @@ public class MeleeWeapon : MonoBehaviour
                 // Get the PatrolAgent component from the hit object
                 PatrolAgent aiAgent = hit.transform.GetComponent<PatrolAgent>();
 
-                // If the component exists, deal damage based on the multiplier
+                // If the component exists, deal damage directly
                 if (aiAgent != null)
                 {
-                    int damageToDeal = Mathf.CeilToInt(aiAgent.maxHits * damageMultiplier);
-                    StartCoroutine(DoDamage(aiAgent, damageToDeal));
+                    StartCoroutine(DoDamage(aiAgent, damageAmount));
                 }
             }
         }
     }
 
-    private IEnumerator DoDamage(PatrolAgent aiAgent, int damageToDeal)
+    private IEnumerator DoDamage(PatrolAgent aiAgent, float damageAmount)
     {
-        for (int i = 0; i < damageToDeal; i++)
-        {
-            yield return new WaitForSeconds(hitDelay);
-            aiAgent.HitByProjectile();
-        }
+        yield return new WaitForSeconds(hitDelay);
+        aiAgent.HitByProjectile(damageAmount);
     }
 
     private void ResetAttack()
@@ -119,4 +116,4 @@ public class MeleeWeapon : MonoBehaviour
     }
 
     #endregion
-} 
+}

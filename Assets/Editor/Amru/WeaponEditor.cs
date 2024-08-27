@@ -16,6 +16,7 @@ public class WeaponEditor : Editor
     SerializedProperty isReloading;
     SerializedProperty bulletVelocity;
     SerializedProperty bulletLifeTime;
+    SerializedProperty bulletDamage; 
     SerializedProperty isShooting;
     SerializedProperty readyToShoot;
     SerializedProperty shootingDelay;
@@ -41,6 +42,7 @@ public class WeaponEditor : Editor
         isReloading = serializedObject.FindProperty("isReloading");
         bulletVelocity = serializedObject.FindProperty("bulletVelocity");
         bulletLifeTime = serializedObject.FindProperty("bulletLifeTime");
+        bulletDamage = serializedObject.FindProperty("bulletDamage"); // Initialize bullet damage property
         isShooting = serializedObject.FindProperty("isShooting");
         readyToShoot = serializedObject.FindProperty("readyToShoot");
         shootingDelay = serializedObject.FindProperty("shootingDelay");
@@ -71,6 +73,7 @@ public class WeaponEditor : Editor
 
         EditorGUILayout.PropertyField(bulletVelocity);
         EditorGUILayout.PropertyField(bulletLifeTime);
+        EditorGUILayout.PropertyField(bulletDamage); // Display bullet damage in the inspector
 
         EditorGUILayout.PropertyField(isShooting);
         EditorGUILayout.PropertyField(readyToShoot);

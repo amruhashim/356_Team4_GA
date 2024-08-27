@@ -263,20 +263,22 @@ public class PatrolAgent : MonoBehaviour
     #endregion
 
     #region Health Methods
-    public void HitByProjectile()
+public void HitByProjectile(float damage)
+{
+    hitCount += Mathf.CeilToInt(damage);  // Apply the damage
+
+    if (hitCount >= maxHits)
     {
-        hitCount++;
-        if (hitCount >= maxHits)
-        {
-            HandleDeath();
-        }
-        else
-        {
-            UpdateHealthBar();
-            // Update AI state in PlayerState with the current health
-            PlayerState.Instance?.UpdateAIState(uniqueID, false, maxHits - hitCount);
-        }
+        HandleDeath();
     }
+    else
+    {
+        UpdateHealthBar();
+        // Update AI state in PlayerState with the current health
+        PlayerState.Instance?.UpdateAIState(uniqueID, false, maxHits - hitCount);
+    }
+}
+
 
     public void HitByGrenade(float damage)
     {

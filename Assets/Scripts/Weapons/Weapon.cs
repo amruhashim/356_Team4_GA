@@ -23,6 +23,7 @@ public class Weapon : MonoBehaviour
     [Header("Bullet Settings")]
     public float bulletVelocity = 30f;
     public float bulletLifeTime = 3f;
+    public float bulletDamage = 5f; 
 
     [Header("Shooting Settings")]
     public bool isShooting;
@@ -182,13 +183,20 @@ public class Weapon : MonoBehaviour
         readyToShoot = true;
     }
 
-    private void FireBullet()
+private void FireBullet()
     {
         muzzleEffect.GetComponent<ParticleSystem>().Play();
 
         Vector3 shootingDirection = CalculateDirectionAndSpread();
         GameObject bullet = Instantiate(bulletPrefab, bulletSpawn.position, Quaternion.LookRotation(shootingDirection));
         bullet.GetComponent<Rigidbody>().velocity = shootingDirection * bulletVelocity;
+
+        // Pass the damage value to the bullet
+        Bullet bulletScript = bullet.GetComponent<Bullet>();
+        if (bulletScript != null)
+        {
+            bulletScript.SetDamage(bulletDamage);
+        }
 
         StartCoroutine(DestroyBulletAfterTime(bullet, bulletLifeTime));
     }
