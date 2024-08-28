@@ -3,17 +3,7 @@ guid: a5c5f3e0812d46a409d5b83b0a278424
 ModelImporter:
   serializedVersion: 22200
   internalIDToNameTable: []
-  externalObjects:
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: PowerPlantA
-    second: {fileID: 2800000, guid: 56cf0299cbb910e46bdd9ba0f58b75b8, type: 3}
-  - first:
-      type: UnityEngine:Texture2D
-      assembly: UnityEngine.CoreModule
-      name: andrew
-    second: {fileID: 2800000, guid: 80118b4add30c6b43a020d1c145af098, type: 3}
+  externalObjects: {}
   materials:
     materialImportMode: 2
     materialName: 0
