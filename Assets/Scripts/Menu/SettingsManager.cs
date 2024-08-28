@@ -104,7 +104,7 @@ public class SettingsManager : MonoBehaviour
             Debug.Log($"Loaded sensitivity settings: Mouse X={sensitivitySettings.mouseSensitivity.x}, Y={sensitivitySettings.mouseSensitivity.y}, Drone={sensitivitySettings.droneSensitivity}");
 
             // Set the slider values based on the loaded settings
-            sensitivitySlider.value = sensitivitySettings.mouseSensitivity.x; // Assuming X and Y are the same
+            sensitivitySlider.value = sensitivitySettings.mouseSensitivity.x; 
             droneSensitivitySlider.value = sensitivitySettings.droneSensitivity;
 
             // Apply the sensitivity immediately
@@ -142,7 +142,7 @@ public class SettingsManager : MonoBehaviour
 
     public void SetMasterVolume(float value)
     {
-        float dbValue = Mathf.Lerp(-80f, 0f, value / 10f);
+        float dbValue = Mathf.Lerp(-30f, 0f, value / 10f);
         audioMixerController?.SetMasterVolume(dbValue);
         saveManager?.SaveVolumeSettings(masterSlider.value, musicSlider.value, effectsSlider.value);
     }
@@ -156,7 +156,7 @@ public class SettingsManager : MonoBehaviour
 
     public void SetEffectsVolume(float value)
     {
-        float dbValue = Mathf.Lerp(-80f, 0f, value / 10f);
+        float dbValue = Mathf.Lerp(-30f, 0f, value / 10f);
         audioMixerController?.SetEffectsVolume(dbValue);
         saveManager?.SaveVolumeSettings(masterSlider.value, musicSlider.value, effectsSlider.value);
     }

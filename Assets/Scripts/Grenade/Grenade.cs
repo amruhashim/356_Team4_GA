@@ -15,7 +15,7 @@ public class Grenade : MonoBehaviour
     private float initialBounceForce;
     private int bounceCount = 0;
     public const int maxBounces = 3; // Maximum number of bounces before stopping
-    public const float bounceReductionFactor = 0.5f; // Reduction factor for each bounce
+    public const float bounceReductionFactor = 0.3f; // Reduction factor for each bounce
 
     void Start()
     {
@@ -24,7 +24,7 @@ public class Grenade : MonoBehaviour
 
     public void SetInitialBounceForce(float force)
     {
-        initialBounceForce = force * 0.5f;
+        initialBounceForce = force * 0.3f; // Reduced the initial bounce force
     }
 
     public void DelayedExplosion(float delay)
@@ -61,7 +61,7 @@ public class Grenade : MonoBehaviour
         Collider[] colliders = Physics.OverlapSphere(transform.position, explosionRadius);
         foreach (Collider nearbyObject in colliders)
         {
-            // avoid player 
+            // Avoid player 
             if (nearbyObject.CompareTag("Player"))
                 continue;
 
@@ -85,13 +85,23 @@ public class Grenade : MonoBehaviour
 
         }
 
-        // Delay the destruction of the game object until the explosion sound has finished playing
+        // Turn off all SkinnedMeshRenderers in the children of this grenade
+        SkinnedMeshRenderer[] skinnedMeshRenderers = GetComponentsInChildren<SkinnedMeshRenderer>();
+        foreach (var renderer in skinnedMeshRenderers)
+        {
+            renderer.enabled = false;
+        }
+
+        // Disable the collider to stop physical interactions
+        GetComponent<Collider>().enabled = false;
+
+        // Delay the destruction of the game object for a shorter time after the explosion
         StartCoroutine(DestroyAfterSound());
     }
 
     IEnumerator DestroyAfterSound()
     {
-        yield return new WaitForSeconds(explosionSound.length);
+        yield return new WaitForSeconds(Mathf.Min(1.0f, explosionSound.length)); // Destroy after 1 second or when the sound finishes, whichever is shorter
         Destroy(gameObject);
     }
 }

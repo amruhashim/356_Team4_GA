@@ -134,7 +134,7 @@ public class InGameMenu : MonoBehaviour
 
     public void SetMasterVolume(float value)
     {
-        float dbValue = Mathf.Lerp(-80f, 0f, value / 10f);
+        float dbValue = Mathf.Lerp(-30f, 0f, value / 10f);
         AudioMixerController.Instance.SetMasterVolume(dbValue);
         SaveManager.Instance.SaveVolumeSettings(masterSlider.value, musicSlider.value, effectsSlider.value);
     }
@@ -148,7 +148,7 @@ public class InGameMenu : MonoBehaviour
 
     public void SetEffectsVolume(float value)
     {
-        float dbValue = Mathf.Lerp(-80f, 0f, value / 10f);
+        float dbValue = Mathf.Lerp(-30f, 0f, value / 10f);
         AudioMixerController.Instance.SetEffectsVolume(dbValue);
         SaveManager.Instance.SaveVolumeSettings(masterSlider.value, musicSlider.value, effectsSlider.value);
     }

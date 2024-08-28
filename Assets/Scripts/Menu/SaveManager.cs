@@ -79,13 +79,13 @@ public class SaveManager : MonoBehaviour
         // Check if volume settings file exists, if not create it with default settings
         if (!File.Exists(volumeSettingsProtoPath))
         {
-            SaveVolumeSettings(1.0f, 1.0f, 1.0f);
+            SaveVolumeSettings(10.0f, 6.0f, 7.5f);
         }
 
         // Check if sensitivity settings file exists, if not create it with default settings
         if (!File.Exists(sensitivitySettingsProtoPath))
         {
-            SaveSensitivitySettings(new SerializableVector2(1.0f, 1.0f), 2.5f); // Default drone sensitivity of 2.5
+            SaveSensitivitySettings(new SerializableVector2(2.0f,2.0f), 2.5f); // Default drone sensitivity of 2.5
         }
     }
 
@@ -236,7 +236,7 @@ public class SaveManager : MonoBehaviour
         else
         {
             Debug.Log("No volume settings file found, using default settings.");
-            return new VolumeSettings { music = 1.0f, effects = 1.0f, master = 1.0f };
+            return new VolumeSettings { music = 10.0f, effects = 6.0f, master = 7.5f };
         }
     }
 
@@ -328,7 +328,7 @@ public class SaveManager : MonoBehaviour
         else
         {
             Debug.Log("No sensitivity settings file found, using default settings.");
-            return new SensitivitySettings(new SerializableVector2(1.0f, 1.0f), 2.5f); // Default drone sensitivity of 2.5
+            return new SensitivitySettings(new SerializableVector2(2.0f, 2.0f), 2.5f); // Default drone sensitivity of 2.5
         }
     }
 
