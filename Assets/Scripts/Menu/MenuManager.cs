@@ -12,9 +12,12 @@ public class MenuManager : MonoBehaviour
     public GameObject saveMenu;
     public GameObject settingsMenu;
     public GameObject menu;
-    public GameObject menuBackground;  // New reference to the menu background object
+    public GameObject menuBackground;  
 
     public bool isMenuOpen;
+
+    // Allow button binding in the inspector
+    public KeyCode menuToggleKey = KeyCode.M;
 
     private void Awake()
     {
@@ -30,7 +33,7 @@ public class MenuManager : MonoBehaviour
 
     private void Update()
     {
-        if (Input.GetKeyDown(KeyCode.M))
+        if (Input.GetKeyDown(menuToggleKey))
         {
             ToggleMenu();
         }
@@ -90,6 +93,15 @@ public class MenuManager : MonoBehaviour
         else
         {
             Debug.LogError("SaveManager instance is null. Make sure SaveManager is initialized.");
+        }
+    }
+
+    // Function to close the menu via UI button
+    public void CloseMenu()
+    {
+        if (isMenuOpen)
+        {
+            ToggleMenu();
         }
     }
 }
