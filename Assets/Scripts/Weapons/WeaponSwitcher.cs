@@ -17,6 +17,8 @@ public class WeaponEntry
 
 public class WeaponSwitcher : MonoBehaviour
 {
+    // Main Components
+    [Header("Main Components")]
     public Transform handHolder;
     public Weapon currentWeapon;
     public GameObject dronePrefab;
@@ -26,21 +28,28 @@ public class WeaponSwitcher : MonoBehaviour
     public Movement playerMovement;
     public Camera mainCamera;
     public TextMeshProUGUI outOfRangeText;
+    public GameObject playerMesh;
 
+    // Spotlight Settings
     [Header("Spotlight Settings")]
     public float outOfRangeIntensity = 10f; // Intensity when out of range
     private float defaultIntensity = 0f;
     public Light warningSpotlight;
 
+    // Internal State Management
+    [Header("Internal State Management")]
     private GameObject droneInstance;
     private bool isGrenadeActive = false;
     public bool isDroneActive = false;
     private GameObject grenadeHandInstance;
     private GameObject meleeWeaponInstance;
 
+    // Objects & Scripts Management
+    [Header("Objects & Scripts Management")]
     public GameObject[] objectsToDisable;
     public MonoBehaviour[] scriptsToDisable;
 
+    // Weapon Configuration
     [Header("Weapon Configuration")]
     public List<WeaponEntry> weaponEntries;
     public string initialWeaponID;
@@ -49,6 +58,7 @@ public class WeaponSwitcher : MonoBehaviour
 
     private Dictionary<string, WeaponEntry> weaponDictionary;
     private CharacterController characterController;
+
 
     private void Start()
     {
@@ -408,6 +418,8 @@ public class WeaponSwitcher : MonoBehaviour
             warningSpotlight.intensity = defaultIntensity;
             timeOutOfRange = 0f;
 
+            playerMesh.SetActive(false); // Hide the player mesh when the drone is toggled off
+
             if (currentWeapon != null)
             {
                 AmmoManager.Instance.HighlightActiveWeaponIcon(weaponDictionary[currentWeapon.weaponID].weaponIcon);
@@ -452,11 +464,14 @@ public class WeaponSwitcher : MonoBehaviour
                     playerMovement.freezePosition = true;
                     isDroneActive = true;
 
+                    playerMesh.SetActive(true); // Show the player mesh when the drone is toggled on
+
                     AmmoManager.Instance.HighlightDroneIcon();
                 }
             }
         }
     }
+
 
     public void SwitchWeaponByID(string weaponID, bool isLoadingGame = false)
     {

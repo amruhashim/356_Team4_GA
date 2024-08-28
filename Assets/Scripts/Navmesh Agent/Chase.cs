@@ -8,19 +8,31 @@ using System.Collections;
 
 public class Chase : MonoBehaviour
 {
+    [Header("Vision Settings")]
     public float visionRange = 20f;
     public float visionAngle = 60f;
+    public float maxVisionAngle = 180f;
+    public float minimumDetectionDistance = 1.5f;
+
+    [Header("Chase Settings")]
     public float chasingSpeed = 5f;
     public float lostPlayerFreezeTime = 3f;
-    public float minimumDetectionDistance = 1.5f;
-    public float maxVisionAngle = 180f;
+
+    [Header("Shooting Settings")]
     public GameObject bulletPrefab;
     public Transform shootingPoint;
     public float bulletSpeed = 20f;
     public float fireRate = 1f;
+    public float bulletDamage = 3f;
     public AudioClip shootingSound;
 
-    public bool showGizmos = true; // Add this line
+    [Header("Collision Settings")]
+    public float collisionDamage = 10f;
+    public float collisionDetectionRadius = 1.0f;
+
+    [Header("Gizmos Settings")]
+    public bool showGizmos = true;
+
 
     private bool isTargetInRange = false;
     private bool isTargetInVisionAngle = false;
@@ -74,6 +86,33 @@ public class Chase : MonoBehaviour
         else
         {
             HandleLostTargetState();
+        }
+
+        DetectCollisionWithPlayer(); // Check for collisions with the player
+    }
+
+    private void DetectCollisionWithPlayer()
+    {
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, collisionDetectionRadius);
+
+        foreach (Collider hitCollider in hitColliders)
+        {
+            if (hitCollider.CompareTag("Player"))
+            {
+                PlayerHealth playerHealth = hitCollider.GetComponent<PlayerHealth>();
+                if (playerHealth != null)
+                {
+                    playerHealth.PlayerTakingDamage(collisionDamage);
+
+                    if (playerHealth.fadeCoroutine != null)
+                    {
+                        playerHealth.StopCoroutine(playerHealth.fadeCoroutine);
+                    }
+                    playerHealth.fadeCoroutine = playerHealth.StartCoroutine(playerHealth.FadeOutHealthImpact());
+
+                    Debug.Log($"Chase: Collided with player, applied {collisionDamage} damage.");
+                }
+            }
         }
     }
 
@@ -279,7 +318,7 @@ public class Chase : MonoBehaviour
                     PlayerHealth playerHealth = hit.collider.GetComponent<PlayerHealth>();
                     if (playerHealth != null)
                     {
-                        playerHealth.PlayerTakingDamage(3f);
+                        playerHealth.PlayerTakingDamage(bulletDamage);
 
                         if (playerHealth.fadeCoroutine != null)
                         {
@@ -316,7 +355,7 @@ public class Chase : MonoBehaviour
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
-        if (!showGizmos) return; // Add this line
+        if (!showGizmos) return;
 
         GUIStyle labelStyle = new GUIStyle
         {
@@ -370,6 +409,10 @@ public class Chase : MonoBehaviour
 
         DrawBoldSphere(transform.position, shootingStartRange, Color.red);
         DrawLabelWithBackground(transform.position + Vector3.up * (shootingStartRange + 0.5f), $"Shooting Start Range: {shootingStartRange}m", labelStyle, backgroundColor);
+
+        // Draw the OverlapSphere for collision detection visualization
+        DrawBoldSphere(transform.position, collisionDetectionRadius, Color.blue);
+        DrawLabelWithBackground(transform.position + Vector3.up * (collisionDetectionRadius + 0.5f), $"Collision Detection Radius: {collisionDetectionRadius}m", labelStyle, backgroundColor);
     }
 
     private void DrawBoldSphere(Vector3 position, float radius, Color color)
