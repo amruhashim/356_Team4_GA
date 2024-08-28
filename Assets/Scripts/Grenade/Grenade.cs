@@ -14,8 +14,8 @@ public class Grenade : MonoBehaviour
 
     private float initialBounceForce;
     private int bounceCount = 0;
-    private const int maxBounces = 3; // Maximum number of bounces before stopping
-    private const float bounceReductionFactor = 0.5f; // Reduction factor for each bounce
+    public const int maxBounces = 3; // Maximum number of bounces before stopping
+    public const float bounceReductionFactor = 0.5f; // Reduction factor for each bounce
 
     void Start()
     {
