@@ -52,6 +52,9 @@ public class PatrolAgent : MonoBehaviour
 
     [Tooltip("Range within which the AI can hear sounds.")]
     public float hearingRange = 15f;
+
+    public bool showPatrolVisionGizmos = true; 
+    public bool showHearingRangeGizmos = true; 
     #endregion
 
     #region Private Fields
@@ -415,46 +418,51 @@ public class PatrolAgent : MonoBehaviour
         // Fluorescent purple color
         Color fluorescentPurple = new Color(0.75f, 0.0f, 1.0f); // Strong purple
 
-        // Set Gizmo color based on detection status
-        Gizmos.color = isTargetInRange && isTargetInVisionAngle ? fluorescentPurple : new Color(0.5f, 0.0f, 0.75f); // Fluorescent purple or a slightly darker purple
-
-        // Draw a bold detection range sphere by layering multiple spheres
-        for (float i = 0; i < 3; i += 0.1f)
+        // Visualize patrol vision range if enabled
+        if (showPatrolVisionGizmos)
         {
-            Gizmos.DrawWireSphere(transform.position, visionRange + i * 0.05f);
+            Gizmos.color = isTargetInRange && isTargetInVisionAngle ? fluorescentPurple : new Color(0.5f, 0.0f, 0.75f); // Fluorescent purple or a slightly darker purple
+
+            // Draw a bold detection range sphere by layering multiple spheres
+            for (float i = 0; i < 3; i += 0.1f)
+            {
+                Gizmos.DrawWireSphere(transform.position, visionRange + i * 0.05f);
+            }
+
+            // Label the patrol vision range sphere
+            DrawLabelWithBackground(transform.position + Vector3.up * (visionRange + 1f), "Patrol Vision Range", smallLabelStyle, backgroundColor);
+
+            // Draw the vision cone with thicker lines
+            Vector3 forward = transform.forward * visionRange;
+            Vector3 leftBoundary = Quaternion.Euler(0, -visionAngle / 2, 0) * forward;
+            Vector3 rightBoundary = Quaternion.Euler(0, visionAngle / 2, 0) * forward;
+
+            // Draw multiple lines for a thicker effect
+            for (float offset = -0.1f; offset <= 0.1f; offset += 0.05f)
+            {
+                Gizmos.DrawRay(transform.position + new Vector3(offset, 0, 0), leftBoundary);
+                Gizmos.DrawRay(transform.position + new Vector3(offset, 0, 0), rightBoundary);
+            }
+
+            // Draw an arc for the vision cone with low opacity
+            Handles.color = new Color(0.75f, 0.0f, 1.0f, 0.1f); // Very low opacity fluorescent purple
+            Handles.DrawSolidArc(transform.position, Vector3.up, leftBoundary.normalized, visionAngle, visionRange);
+
+            // Label the vision range
+            DrawLabelWithBackground(transform.position + forward.normalized * (visionRange + 1f), "Vision Range", smallLabelStyle, backgroundColor);
+
+            // Draw labels for the state and vision range
+            DrawLabelWithBackground(transform.position + Vector3.up * 2, $"State: {stateManager?.currentState ?? AIStateManager.AIState.Patrolling}", smallLabelStyle, backgroundColor);
+            DrawLabelWithBackground(transform.position + forward.normalized * visionRange, $"Vision Range: {visionRange}m", smallLabelStyle, backgroundColor);
         }
 
-        // Label the patrol vision range sphere
-        DrawLabelWithBackground(transform.position + Vector3.up * (visionRange + 1f), "Patrol Vision Range", smallLabelStyle, backgroundColor);
-
-        // Draw the vision cone with thicker lines
-        Vector3 forward = transform.forward * visionRange;
-        Vector3 leftBoundary = Quaternion.Euler(0, -visionAngle / 2, 0) * forward;
-        Vector3 rightBoundary = Quaternion.Euler(0, visionAngle / 2, 0) * forward;
-
-        // Draw multiple lines for a thicker effect
-        Gizmos.color = fluorescentPurple;
-        for (float offset = -0.1f; offset <= 0.1f; offset += 0.05f)
+        // Visualize the hearing range if enabled
+        if (showHearingRangeGizmos)
         {
-            Gizmos.DrawRay(transform.position + new Vector3(offset, 0, 0), leftBoundary);
-            Gizmos.DrawRay(transform.position + new Vector3(offset, 0, 0), rightBoundary);
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(transform.position, hearingRange);
+            DrawLabelWithBackground(transform.position + Vector3.up * (hearingRange + 1f), "Hearing Range", smallLabelStyle, backgroundColor);
         }
-
-        // Draw an arc for the vision cone with low opacity
-        Handles.color = new Color(0.75f, 0.0f, 1.0f, 0.1f); // Very low opacity fluorescent purple
-        Handles.DrawSolidArc(transform.position, Vector3.up, leftBoundary.normalized, visionAngle, visionRange);
-
-        // Label the vision range
-        DrawLabelWithBackground(transform.position + forward.normalized * (visionRange + 1f), "Vision Range", smallLabelStyle, backgroundColor);
-
-        // Draw labels for the state and vision range
-        DrawLabelWithBackground(transform.position + Vector3.up * 2, $"State: {stateManager?.currentState ?? AIStateManager.AIState.Patrolling}", smallLabelStyle, backgroundColor);
-        DrawLabelWithBackground(transform.position + forward.normalized * visionRange, $"Vision Range: {visionRange}m", smallLabelStyle, backgroundColor);
-
-        // Visualize the hearing range
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, hearingRange);
-        DrawLabelWithBackground(transform.position + Vector3.up * (hearingRange + 1f), "Hearing Range", smallLabelStyle, backgroundColor);
 
         // Visualize all waypoints and the travel path
         Gizmos.color = Color.blue;
@@ -495,5 +503,4 @@ public class PatrolAgent : MonoBehaviour
         Handles.EndGUI();
     }
 #endif
-
 }

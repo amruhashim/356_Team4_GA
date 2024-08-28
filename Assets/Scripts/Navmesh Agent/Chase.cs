@@ -20,6 +20,8 @@ public class Chase : MonoBehaviour
     public float fireRate = 1f;
     public AudioClip shootingSound;
 
+    public bool showGizmos = true; // Add this line
+
     private bool isTargetInRange = false;
     private bool isTargetInVisionAngle = false;
     private Transform targetTransform;
@@ -314,6 +316,8 @@ public class Chase : MonoBehaviour
 #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
+        if (!showGizmos) return; // Add this line
+
         GUIStyle labelStyle = new GUIStyle
         {
             normal = { textColor = Color.black },
