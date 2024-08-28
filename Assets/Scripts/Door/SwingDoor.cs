@@ -18,22 +18,38 @@ public class SwingDoor : MonoBehaviour
     private float xKeyPressedTime = 0f;
     private float xKeyHoldDuration = 1f; // 1 second hold duration
     private bool isCoroutineRunning = false;
-    private bool isPlayerInCollider = false;
+
+    private MeshRenderer doorMeshRenderer;
+    private Collider swingObjectCollider;
+    private WeaponSwitcher weaponSwitcher; // Private reference to the WeaponSwitcher component
 
     private void Start()
     {
+        // Get the MeshRenderer and the Collider from the swingObject
+        doorMeshRenderer = swingObject.GetComponent<MeshRenderer>();
+        swingObjectCollider = swingObject.GetComponent<Collider>();
+
+        // Get the WeaponSwitcher component from the parent or any relevant GameObject
+        weaponSwitcher = FindObjectOfType<WeaponSwitcher>();
+
         // Check if the door was previously open and open it immediately if it was
         if (PlayerState.Instance.IsDoorOpen(doorIdentifier))
         {
             OpenDoorInstantly();
         }
+
+        // Ensure UI is initially set based on the drone's state
+        UpdateUIVisibility(false);
     }
 
     private void Update()
     {
-        // Check if the player is interacting with the door
-        if (isPlayerInCollider)
+        // Check if the drone is interacting with the door
+        if (weaponSwitcher != null && weaponSwitcher.isDroneActive && IsDroneInCollider())
         {
+            // Update UI visibility based on the drone's active state
+            UpdateUIVisibility(true);
+
             // Check for X key press and hold
             if (Input.GetKeyDown(KeyCode.X))
             {
@@ -50,11 +66,8 @@ public class SwingDoor : MonoBehaviour
             {
                 isXKeyPressed = false;
                 xKeyPressedTime = 0f;
-                // Reset the slider value only if the player is not in the collider
-                if (!isPlayerInCollider)
-                {
-                    xButtonSlider.fillAmount = 0f;
-                }
+                // Reset the slider value only if the drone is not in the collider
+                xButtonSlider.fillAmount = 0f;
             }
 
             // If the door is open, deactivate the UI element
@@ -62,8 +75,8 @@ public class SwingDoor : MonoBehaviour
             {
                 uiElement.SetActive(false);
             }
-            // If the door is not open and the player is in the collider, activate the UI element
-            else if (isPlayerInCollider)
+            // If the door is not open and the drone is in the collider, activate the UI element
+            else
             {
                 uiElement.SetActive(true);
             }
@@ -75,15 +88,40 @@ public class SwingDoor : MonoBehaviour
                 isCoroutineRunning = true;
             }
         }
+        else
+        {
+            UpdateUIVisibility(false);
+        }
+    }
+
+    private void UpdateUIVisibility(bool shouldShowUI)
+    {
+        uiElement.SetActive(shouldShowUI);
+        xButtonSlider.gameObject.SetActive(shouldShowUI);
+    }
+
+    private bool IsDroneInCollider()
+    {
+        // Check for the drone's presence using the tag
+        Collider[] colliders = Physics.OverlapBox(doorCollider.bounds.center, doorCollider.bounds.extents, doorCollider.transform.rotation);
+        foreach (Collider collider in colliders)
+        {
+            if (collider.CompareTag("Drone"))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Drone"))
         {
-            isPlayerInCollider = true;
-            xButtonSlider.gameObject.SetActive(true); // Activate the slider when the player enters the collider
-            xButtonSlider.fillAmount = 0f; // Reset the slider value when the player enters the collider
+            Debug.Log("Drone entered the collider"); // Verify the collider interaction
+            xButtonSlider.gameObject.SetActive(true); // Activate the slider when the drone enters the collider
+            xButtonSlider.fillAmount = 0f; // Reset the slider value when the drone enters the collider
+            UpdateUIVisibility(true); // Ensure UI visibility is updated
         }
     }
 
@@ -91,9 +129,9 @@ public class SwingDoor : MonoBehaviour
     {
         if (other.CompareTag("Drone"))
         {
-            isPlayerInCollider = false;
-            xButtonSlider.gameObject.SetActive(false); // Deactivate the slider when the player exits the collider
-            uiElement.SetActive(false); // Deactivate the UI element when the player exits the collider
+            Debug.Log("Drone exited the collider"); // Verify the collider interaction
+            xButtonSlider.gameObject.SetActive(false); // Deactivate the slider when the drone exits the collider
+            uiElement.SetActive(false); // Deactivate the UI element when the drone exits the collider
         }
     }
 
@@ -103,7 +141,7 @@ public class SwingDoor : MonoBehaviour
         originalRotation = swingObject.transform.rotation;
 
         // Calculate the target rotation by applying the swing angle to the original rotation
-        targetRotation = originalRotation * Quaternion.Euler(0f, 0f, swingAngle);
+        targetRotation = originalRotation * Quaternion.Euler(0f, swingAngle, 0f);
 
         float elapsedTime = 0f;
         float duration = 1.5f; // 1.5 second duration
@@ -111,7 +149,19 @@ public class SwingDoor : MonoBehaviour
         while (elapsedTime < duration)
         {
             // Lerp the rotation from the original to the target over the duration
-            swingObject.transform.rotation = Quaternion.Lerp(originalRotation, targetRotation, elapsedTime / duration);
+            Quaternion newRotation = Quaternion.Lerp(originalRotation, targetRotation, elapsedTime / duration);
+
+            // Apply the new rotation to both the mesh renderer and collider
+            if (doorMeshRenderer != null)
+            {
+                doorMeshRenderer.transform.rotation = newRotation;
+            }
+
+            if (swingObjectCollider != null)
+            {
+                swingObjectCollider.transform.rotation = newRotation;
+            }
+
             elapsedTime += Time.deltaTime;
             yield return null;
         }
@@ -160,7 +210,9 @@ public class SwingDoor : MonoBehaviour
     {
         // Directly set the door to the open position
         originalRotation = swingObject.transform.rotation;
-        swingObject.transform.rotation = originalRotation * Quaternion.Euler(0f, 0f, swingAngle);
+        Quaternion finalRotation = originalRotation * Quaternion.Euler(0f, swingAngle, 0f);
+
+        swingObject.transform.rotation = finalRotation;
         isOpen = true;
 
         // Disable the collider to prevent further interaction
