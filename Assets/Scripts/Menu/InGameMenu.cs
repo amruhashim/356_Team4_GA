@@ -141,7 +141,7 @@ public class InGameMenu : MonoBehaviour
 
     public void SetMusicVolume(float value)
     {
-        float dbValue = Mathf.Lerp(-80f, 0f, value / 10f);
+        float dbValue = Mathf.Lerp(-30f, 0f, value / 10f);
         AudioMixerController.Instance.SetMusicVolume(dbValue);
         SaveManager.Instance.SaveVolumeSettings(masterSlider.value, musicSlider.value, effectsSlider.value);
     }

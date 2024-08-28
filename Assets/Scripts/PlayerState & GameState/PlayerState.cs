@@ -81,7 +81,7 @@ public class PlayerState : MonoBehaviour
         {
             currentHealth = 0;
             isGameOverTriggered = true;
-            Debug.Log("Player health is 0. Triggering Game Over.");
+            //Debug.Log("Player health is 0. Triggering Game Over.");
             TriggerGameOver();
         }
 
@@ -89,7 +89,7 @@ public class PlayerState : MonoBehaviour
         if (AreAllHostagesRescued() && !isMissionCompleteTriggered)
         {
             isMissionCompleteTriggered = true;
-            Debug.Log("All hostages rescued. Triggering Mission Complete.");
+           // Debug.Log("All hostages rescued. Triggering Mission Complete.");
             TriggerMissionComplete();
         }
     }

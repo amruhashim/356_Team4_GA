@@ -267,7 +267,7 @@ private void FireBullet()
     {
         if (AmmoManager.Instance.ammoDisplay != null)
         {
-            AmmoManager.Instance.ammoDisplay.text = $"{bulletsLeft}/{accumulatedBullets}";
+            AmmoManager.Instance.ammoDisplay.text = $"{bulletsLeft} / {accumulatedBullets}";
         }
     }
 

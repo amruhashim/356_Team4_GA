@@ -149,7 +149,7 @@ public class SettingsManager : MonoBehaviour
 
     public void SetMusicVolume(float value)
     {
-        float dbValue = Mathf.Lerp(-80f, 0f, value / 10f);
+        float dbValue = Mathf.Lerp(-30f, 0f, value / 10f);
         audioMixerController?.SetMusicVolume(dbValue);
         saveManager?.SaveVolumeSettings(masterSlider.value, musicSlider.value, effectsSlider.value);
     }

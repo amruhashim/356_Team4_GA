@@ -1,7 +1,7 @@
-using ProtoBuf;
 using System.IO;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using ProtoBuf;
 
 public class SaveManager : MonoBehaviour
 {
@@ -13,8 +13,6 @@ public class SaveManager : MonoBehaviour
 
     // Paths for saving settings data
     private string volumeSettingsProtoPath;
-
-    // Paths for saving sensitivity data
     private string sensitivitySettingsProtoPath;
 
     // Path for saving save status data
@@ -79,13 +77,13 @@ public class SaveManager : MonoBehaviour
         // Check if volume settings file exists, if not create it with default settings
         if (!File.Exists(volumeSettingsProtoPath))
         {
-            SaveVolumeSettings(10.0f, 6.0f, 7.5f);
+            SaveVolumeSettings(10.0f, 6.0f, 8.0f); // Default values: master = 10.0, music = 6.0, effects = 8.0
         }
 
         // Check if sensitivity settings file exists, if not create it with default settings
         if (!File.Exists(sensitivitySettingsProtoPath))
         {
-            SaveSensitivitySettings(new SerializableVector2(2.0f,2.0f), 2.5f); // Default drone sensitivity of 2.5
+            SaveSensitivitySettings(new SerializableVector2(2.0f, 2.0f), 2.5f); // Default drone sensitivity of 2.5
         }
     }
 
@@ -109,7 +107,7 @@ public class SaveManager : MonoBehaviour
             Serializer.Serialize(file, saveStatus);
         }
 
-        Debug.Log("Save status updated using protobuf-net");
+        Debug.Log($"Save status updated using protobuf-net at: {saveStatusProtoPath}");
     }
 
     public bool LoadSaveStatus()
@@ -147,7 +145,7 @@ public class SaveManager : MonoBehaviour
             }
         }
 
-        Debug.Log("Game saved using binary file");
+        Debug.Log($"Game saved using binary file at: {binarySaveGamePath}");
         
         // Update save status to true
         UpdateSaveStatus(true);
@@ -199,11 +197,11 @@ public class SaveManager : MonoBehaviour
     public class VolumeSettings
     {
         [ProtoMember(1)]
-        public float music;
-        [ProtoMember(2)]
-        public float effects;
-        [ProtoMember(3)]
         public float master;
+        [ProtoMember(2)]
+        public float music;
+        [ProtoMember(3)]
+        public float effects;
     }
 
     public void SaveVolumeSettings(float master, float music, float effects)
@@ -221,7 +219,7 @@ public class SaveManager : MonoBehaviour
             Serializer.Serialize(file, volumeSettings);
         }
 
-        Debug.Log("Volume settings saved using protobuf-net");
+        Debug.Log($"Volume settings saved using protobuf-net at: {volumeSettingsProtoPath}");
     }
 
     public VolumeSettings LoadVolumeSettings()
@@ -236,7 +234,7 @@ public class SaveManager : MonoBehaviour
         else
         {
             Debug.Log("No volume settings file found, using default settings.");
-            return new VolumeSettings { music = 10.0f, effects = 6.0f, master = 7.5f };
+            return new VolumeSettings { master = 10.0f, music = 6.0f, effects = 8.0f }; // Default values: master = 10.0, music = 6.0, effects = 8.0
         }
     }
 
@@ -313,7 +311,7 @@ public class SaveManager : MonoBehaviour
             Serializer.Serialize(file, sensitivitySettings);
         }
 
-        Debug.Log("Sensitivity settings saved using protobuf-net");
+        Debug.Log($"Sensitivity settings saved using protobuf-net at: {sensitivitySettingsProtoPath}");
     }
 
     public SensitivitySettings LoadSensitivitySettings()
