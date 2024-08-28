@@ -34,7 +34,7 @@ public class WeaponSwitcher : MonoBehaviour
 
     private GameObject droneInstance;
     private bool isGrenadeActive = false;
-    private bool isDroneActive = false;
+    public bool isDroneActive = false;
     private GameObject grenadeHandInstance;
     private GameObject meleeWeaponInstance;
 
