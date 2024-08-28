@@ -42,18 +42,15 @@ public class AmmoManager : MonoBehaviour
         if (grenadeManager != null && grenadeDisplay != null)
         {
            grenadeDisplay.text = $"{currentGrenades} | {grenadeManager.MaxGrenades}";
-
         }
     }
 
-    // Highlight melee weapon with provided icon
     public void HighlightMeleeWeaponIcon(Sprite meleeIcon)
     {
         meleeWeaponIcon.sprite = meleeIcon; 
         HighlightIcon(meleeWeaponIcon);
     }
 
-    // Highlight grenade with provided icon
     public void HighlightGrenadeIcon(Sprite grenadeSprite)
     {
         grenadeIcon.sprite = grenadeSprite; 
@@ -63,6 +60,7 @@ public class AmmoManager : MonoBehaviour
     public void HighlightActiveWeaponIcon(Sprite newIcon)
     {
         activeWeaponIcon.sprite = newIcon;
+        AdjustIconSize(activeWeaponIcon);
         HighlightIcon(activeWeaponIcon);
     }
 
@@ -73,13 +71,11 @@ public class AmmoManager : MonoBehaviour
 
     private void HighlightIcon(Image activeIcon)
     {
-        // Set all icons to inactive opacity
         SetIconOpacity(meleeWeaponIcon, inactiveOpacity);
         SetIconOpacity(grenadeIcon, inactiveOpacity);
         SetIconOpacity(activeWeaponIcon, inactiveOpacity);
         SetIconOpacity(droneIcon, inactiveOpacity);
 
-        // Set the active icon to full opacity
         SetIconOpacity(activeIcon, activeOpacity);
     }
 
@@ -88,5 +84,24 @@ public class AmmoManager : MonoBehaviour
         Color iconColor = icon.color;
         iconColor.a = opacity;
         icon.color = iconColor;
+    }
+
+    private void AdjustIconSize(Image icon)
+    {
+        RectTransform rectTransform = icon.GetComponent<RectTransform>();
+        if (rectTransform != null && icon.sprite != null)
+        {
+            float spriteAspectRatio = (float)icon.sprite.rect.width / icon.sprite.rect.height;
+
+            // Adjust RectTransform size to maintain the aspect ratio
+            if (rectTransform.rect.width > rectTransform.rect.height)
+            {
+                rectTransform.sizeDelta = new Vector2(rectTransform.rect.height * spriteAspectRatio, rectTransform.rect.height);
+            }
+            else
+            {
+                rectTransform.sizeDelta = new Vector2(rectTransform.rect.width, rectTransform.rect.width / spriteAspectRatio);
+            }
+        }
     }
 }
